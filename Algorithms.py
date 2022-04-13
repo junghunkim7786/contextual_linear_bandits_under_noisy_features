@@ -151,26 +151,35 @@ class OFUL:
         np.random.seed(seed)
 
         for t in range(T):
-            self.Env.load_data()
-            K=self.Env.K
-            x_t=self.Env.x.copy()
+            bool_=True
             if t%10==0:
                 print(t)
-            for k in range(K):
-                self.x_hat[k]=np.insert(x_t[k],0,1)
-            if t==0:
-                chosen_arm=np.random.choice(range(K))
-            else:
-                max_ucb=-np.inf
+            while bool_:
+                self.Env.load_data()
+                K=self.Env.K
+                x_t=self.Env.x.copy()
+
                 for k in range(K):
-                    ucb=self.x_hat[k]@self.theta_hat+(math.sqrt((self.d+1)*math.log((t+2)*T))+math.sqrt(self.d*math.log(K*T)))*math.sqrt(self.x_hat[k]@np.linalg.pinv(self.V)@self.x_hat[k].T)
-                    if ucb>max_ucb:
-                        chosen_arm=k
-                        max_ucb=ucb
+                    self.x_hat[k]=np.insert(x_t[k],0,1)
+                if t==0:
+                    chosen_arm=np.random.choice(range(K))
+                else:
+                    max_ucb=-np.inf
+                    for k in range(K):
+                        ucb=self.x_hat[k]@self.theta_hat+(math.sqrt((self.d+1)*math.log((t+2)*T))+math.sqrt(self.d*math.log(K*T)))*math.sqrt(self.x_hat[k]@np.linalg.pinv(self.V)@self.x_hat[k].T)
+                        if ucb>max_ucb:
+                            chosen_arm=k
+                            max_ucb=ucb
+                if self.Env.env=='synthetic':
+                    bool_=False
+                elif self.Env.env=='yahoo' and chosen_arm==self.Env.chosen_idx:
+                    bool_=False
+           
             self.r_Exp[t],self.r[t]=self.Env.observe(chosen_arm)
             self.V+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
             self.y+=self.x_hat[chosen_arm]*self.r[t]
             self.theta_hat=np.linalg.pinv(self.V)@self.y    
+            
     def rewards(self):
         return self.r_Exp  
 
