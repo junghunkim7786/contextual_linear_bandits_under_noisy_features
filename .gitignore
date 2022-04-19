@@ -1,7 +1,8 @@
-datasets/ml-100k/**
-!datasets/ml-100k/README.md
+datasets/ml-100k/raw/**
+
 datasets/R6A/**
 !datasets/R6A/README.md
+!datasets/R6A/train_autoencoders.ipynb
 
 
 .ipynb_checkpoints/
