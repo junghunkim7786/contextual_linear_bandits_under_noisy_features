@@ -1,2 +1,10 @@
 datasets/ml-100k
+!datasets/ml-100k/README.md
 datasets/R6A
+!datasets/R6A/README.md
+
+
+.ipynb_checkpoints/
+__pycache__/
+result/
+gitinit.sh
