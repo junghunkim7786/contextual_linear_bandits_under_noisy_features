@@ -284,9 +284,13 @@ def run_real(p,K,T,repeat,private,boolean=True):
         for i in range(repeat):
             print('repeat: ',i)
             seed=i
-            Env=yahoo_Env(seed,p,K,private)
+            
+            #Env=yahoo_Env(seed,p,K,private)
+            Env=movielens_Env(seed,p,K,private)
             algorithm1=CLBEF(T,seed,Env)
-            Env=yahoo_Env(seed,p,K,private)
+            
+            #Env=yahoo_Env(seed,p,K,private)
+            Env=movielens_Env(seed,p,K,private)
             algorithm2=OFUL(T,seed,Env)
 #             opti_rewards=Env.opt_reward(T)
 
@@ -377,3 +381,6 @@ def run_real(p,K,T,repeat,private,boolean=True):
     plt.savefig('./result/T'+str(T)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'private'+str(private)+'.png')
     plt.show()
     plt.clf()
+    
+    
+    

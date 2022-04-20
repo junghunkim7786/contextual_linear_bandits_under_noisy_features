@@ -8,14 +8,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.init as init
-import torchvision.datasets as dset
-import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
+import pickle
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 yahoo_emb_dim = 10
 
-class Autoencoder(nn.Module):
+class Yahoo_Autoencoder(nn.Module):
     def __init__(self, emb_dim):
         super().__init__()
         self.emb_dim = emb_dim
@@ -35,12 +33,104 @@ class Autoencoder(nn.Module):
         encoded = self.encoder(x)
         return encoded
 
-yahoo_model = Autoencoder(emb_dim=yahoo_emb_dim)
+yahoo_model = Yahoo_Autoencoder(emb_dim=yahoo_emb_dim)
 yahoo_model.load_state_dict(torch.load('./models/r6a_autoencoder.pt'))
 yahoo_model.to(device)
 yahoo_model.eval()
+
 ######################################################################
-    
+
+class movielens_Env:
+    def __init__(self,seed,p,K_max,private):
+        np.random.seed(seed)
+        
+        sampling_rate = 1.0
+        self.subsampling = True
+        self.K_max = K_max
+        self.K_min = 15
+        self.p = p
+        self.embed_dim = 50
+        self.d = self.embed_dim
+        
+        with open('./datasets/ml-100k/userwise_dictionary' + '.pickle', 'rb') as f:
+            self.userwise_dict = pickle.load(f)
+            
+        trim_ids = []
+        for user_id, v in self.userwise_dict.items():
+            if v[0].shape[0] < self.K_min: #number of arms 
+                trim_ids.append(user_id)
+        for user_id in trim_ids:
+            self.userwise_dict.pop(user_id)
+            
+        self.target_ids = np.array(list(self.userwise_dict.keys()))
+
+        self.env = 'movielens'
+        self.private = private
+        
+        B = np.random.uniform(-1,1,(self.embed_dim,self.embed_dim))
+        self.Sigma_n = B.T @ B
+        
+    def load_data(self):
+        
+        user_id = np.random.choice(self.target_ids)
+        
+        context = self.userwise_dict[user_id][0]
+        reward  = self.userwise_dict[user_id][1]
+        
+        self.K = context.shape[0]
+        self.arms = np.arange(self.K)
+        self.x = context
+        self.reward = reward
+        
+        if self.subsampling:
+            idxs_subsample, token_subsample = self._subsampling()
+            if token_subsample:
+                self.K = self.K_max
+                self.arms = np.arange(self.K)
+                self.x = self.x[idxs_subsample,:]
+                self.reward = self.reward[idxs_subsample]
+        
+        self.m = np.zeros((len(self.arms),self.embed_dim))
+        for k in range(len(self.arms)):
+            self.m[k] = np.random.binomial(1, self.p, self.embed_dim)
+            if self.private == False:
+                self.x[k] = self.x[k] * self.m[k]
+            else:
+                noise = np.random.multivariate_normal(np.zeros(self.embed_dim), self.Sigma_n, 1)
+                self.x[k] = (self.x[k] + noise) * self.m[k]
+
+    def _subsampling(self):
+        
+        idx_0reward = np.where(self.reward == 0)[0]
+        n_0 = idx_0reward.shape[0]
+        idx_1reward = np.where(self.reward == 1)[0]
+        n_1 = idx_1reward.shape[0]
+        
+        if self.K > self.K_max and self.subsampling:
+            '''
+            n_1f = math.ceil(self.K_max * n_1 / (n_0 + n_1))
+            n_0f = self.K_max - n_1f
+            
+            subsample_idx_0reward = np.random.choice(idx_0reward,size=n_0f,replace=False)
+            subsample_idx_1reward = np.random.choice(idx_1reward,size=n_1f,replace=False)
+            
+            subsample_idx = np.concatenate((subsample_idx_0reward,subsample_idx_1reward))
+            '''
+            subsample_idx = np.random.choice(np.arange(self.K),size=self.K_max,replace=False)
+            return subsample_idx, True
+        
+        else:
+            return np.arange(self.K), False
+        
+    def observe(self, k):
+        
+        exp_reward = self.reward[k]
+        reward = exp_reward
+        
+        return exp_reward,reward         
+        
+######################################################################
+
 class yahoo_Env:
     def __init__(self,seed,p,K_max,private):
         np.random.seed(seed)

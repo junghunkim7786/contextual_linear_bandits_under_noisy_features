@@ -7,15 +7,18 @@ from numpy.random import rand
 from Environments import *
 
 class CLBEF:
-    def __init__(self,T,seed,Environment):
+    def __init__(self,T,seed,Environment,exploration=True):
         print('Algorithm: CLBEF')
         self.Env=Environment
         np.random.seed(seed)
+        self.exploration = exploration
         
         self.d = self.Env.d
         self.xi = np.zeros(self.d)
         self.Z = np.zeros((self.d,self.d))
         self.T = T
+        self.alpha = 0.5
+        self.tau=self.d/(self.alpha**4*self.Env.K_max)
         
         self.r=np.zeros(T,float)
         self.r_Exp=np.zeros(T,float)
@@ -35,7 +38,7 @@ class CLBEF:
         
     def run(self):
         
-        for t in tqdm(range(T)):
+        for t in tqdm(range(self.T)):
             bool_=True
             while bool_:
                 self.Env.load_data()
@@ -53,17 +56,22 @@ class CLBEF:
                     xi_tmp=xi_tmp+x_t[k]
                     
                 self.p_hat, self.nu_hat, self.Sigma_hat, self.x_hat = self._get_estimator(K,x_t,m_t,K_sum_tmp,xi_tmp,n_tmp,Z_tmp)
-                    
-                if t==0:
+                
+                if t<self.tau and self.exploration==True:
+                    chosen_arm=np.random.choice(range(K))    
+                
+                elif t==0:
                     chosen_arm=np.random.choice(range(K))
                     
                 else: 
-                    if self.Env.env!='yahoo':
-                        self.V2=np.zeros((self.d+1,self.d+1))
-                        self.xy2=np.zeros(self.d+1)
+                    self.V2=np.zeros((self.d+1,self.d+1))
+                    self.xy2=np.zeros(self.d+1)
+                    if self.exploration==False:
                         for s in self.t_up:
+    #                             a_s=int(self.act[s])
                             x=self.x_his[s]
                             m=self.m_his[s]
+    #                             print(x,self.x[s,a_s])
                             x_hat=np.insert(self.x_bar(self.nu_hat,self.Sigma_hat,x,m),0,1)
                             self.V2+=np.outer(x_hat,x_hat)
                             self.xy2+=x_hat*self.r[s]
@@ -80,9 +88,9 @@ class CLBEF:
                             chosen_arm=k
                             max_ucb=ucb
                             
-                if self.Env.env=='synthetic':
+                if self.Env.env!='yahoo':
                     bool_=False
-                elif self.Env.env=='yahoo' and chosen_arm==self.Env.chosen_idx:
+                elif chosen_arm==self.Env.chosen_idx:
                     bool_=False
                     
             self.n=n_tmp
@@ -93,7 +101,17 @@ class CLBEF:
             self.r_Exp[t], self.r[t] = self.Env.observe(chosen_arm)
             self.x_his.append(x_t[chosen_arm])
             self.m_his.append(m_t[chosen_arm])
-
+            
+            if self.exploration==False:
+                if self.Env.m[chosen_arm].sum()!=self.d:
+                    self.t_up.append(t)
+                else:
+                    self.V1+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
+                    self.xy1+=self.x_hat[chosen_arm]*self.r[t]
+            elif t>self.tau:
+                self.V1+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
+                self.xy1+=self.x_hat[chosen_arm]*self.r[t]
+            '''
             if self.Env.m[chosen_arm].sum()!=self.d:
                 self.t_up.append(t)
             else:
@@ -109,6 +127,7 @@ class CLBEF:
                     x_hat=np.insert(self._x_bar(self.nu_hat,self.Sigma_hat,x,m),0,1)
                     self.V2+=np.outer(x_hat,x_hat)
                     self.xy2+=x_hat*self.r[s]
+            '''
 
     def _get_UCB(self, x_hat, t, K):
         return x_hat@self.theta_hat+\
@@ -157,9 +176,7 @@ class OFUL:
         self.d = self.Env.d
         self.Z = np.zeros((self.d,self.d))
         self.T = T
-#        self.V = np.zeros((self.d+1,self.d+1))
-#        self.act=np.zeros(T)
-#        self.V=np.identity(self.d+1)
+        
         self.V = (self.d+1)*math.log(self.Env.K_max*T)*np.identity(self.d+1)
         self.y = np.zeros(self.d+1)
         self.x_hat = np.zeros((self.Env.K_max,self.d+1))
@@ -184,9 +201,62 @@ class OFUL:
                             chosen_arm=k
                             max_ucb=ucb
                             
-                if self.Env.env=='synthetic':
+                if self.Env.env!='yahoo':
                     bool_=False
-                elif self.Env.env=='yahoo' and chosen_arm==self.Env.chosen_idx:
+                elif chosen_arm==self.Env.chosen_idx:
+                    bool_=False
+           
+            self.r_Exp[t],self.r[t]=self.Env.observe(chosen_arm)
+            self.V+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
+            self.y+=self.x_hat[chosen_arm]*self.r[t]
+            self.theta_hat=np.linalg.pinv(self.V)@self.y    
+            
+    def _get_UCB(self, x_hat, t, K):
+        return x_hat@self.theta_hat+\
+                (math.sqrt((self.d+1)*math.log((t+2)*self.T))+\
+                 math.sqrt(self.d*math.log(K*self.T)))*math.sqrt(x_hat@np.linalg.pinv(self.V)@x_hat.T)
+            
+    def rewards(self):
+        return self.r_Exp
+    
+    
+class RandomPolicy:
+    def __init__(self,T,seed,Environment):
+        print('Algorithm: RandomPolicy')
+        self.Env = Environment
+        self.r = np.zeros(T,float)
+        self.r_Exp = np.zeros(T,float)
+        self.d = self.Env.d
+        self.Z = np.zeros((self.d,self.d))
+        self.T = T
+        
+        self.V = (self.d+1)*math.log(self.Env.K_max*T)*np.identity(self.d+1)
+        self.y = np.zeros(self.d+1)
+        self.x_hat = np.zeros((self.Env.K_max,self.d+1))
+        np.random.seed(seed)
+
+        for t in tqdm(range(T)):
+            bool_=True
+            while bool_:
+                self.Env.load_data()
+                K=self.Env.K
+                x_t=self.Env.x.copy()
+
+                for k in range(K):
+                    self.x_hat[k]=np.insert(x_t[k],0,1)
+                if t==0:
+                    chosen_arm=np.random.choice(range(K))
+                else:
+                    max_ucb=-np.inf
+                    for k in range(K):
+                        ucb = self._get_UCB(self.x_hat[k], t, K)
+                        if ucb>max_ucb:
+                            chosen_arm=k
+                            max_ucb=ucb
+                            
+                if self.Env.env!='yahoo':
+                    bool_=False
+                elif chosen_arm==self.Env.chosen_idx:
                     bool_=False
            
             self.r_Exp[t],self.r[t]=self.Env.observe(chosen_arm)

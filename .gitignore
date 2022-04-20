@@ -4,7 +4,6 @@ datasets/R6A/**
 !datasets/R6A/README.md
 !datasets/R6A/train_autoencoders.ipynb
 
-
 .ipynb_checkpoints/
 __pycache__/
 result/

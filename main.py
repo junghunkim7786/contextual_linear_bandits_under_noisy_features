@@ -22,9 +22,11 @@ if __name__=='__main__':
     T=500  #Time horizon
     num=10
     if opt=='1':
-        p=0.6
-        K=5
-        T=1000
+        p=0.9
+        #K=5 # Yahoo
+        K = 50
+        #T=1000 # Yahoo
+        T= 50000
         private=True
         repeat=1
         run_real(p,K,T,repeat,private,run_bool)
