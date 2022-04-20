@@ -88,9 +88,9 @@ class CLBEF:
                             chosen_arm=k
                             max_ucb=ucb
                             
-                if self.Env.env!='yahoo':
+                if self.Env.env!='yahoo' and self.Env.env!='movielens':
                     bool_=False
-                elif chosen_arm==self.Env.chosen_idx:
+                elif chosen_arm == self.Env.chosen_idx:
                     bool_=False
                     
             self.n=n_tmp
