@@ -3,6 +3,8 @@ import numpy as np
 import math
 from numpy.random import seed
 from numpy.random import rand
+from Envconfigs import *
+import sys
 
 import torch
 import torch.nn as nn
@@ -10,121 +12,93 @@ import torch.optim as optim
 import torch.nn.init as init
 import pickle
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-yahoo_emb_dim = 10
-
-class Yahoo_Autoencoder(nn.Module):
-    def __init__(self, emb_dim):
-        super().__init__()
-        self.emb_dim = emb_dim
-        self.encoder = nn.Linear(36, self.emb_dim)
-        self.decoder = nn.Linear(self.emb_dim, 36)
-                
-    def forward(self, x):
-        batch_size = x.shape[0]
-        x = x.view(x.shape[0],-1)
-        encoded = self.encoder(x)
-        out = self.decoder(encoded).view(batch_size,36)
-        return out
-    
-    def encoding_result(self, x):
-        batch_size = x.shape[0]
-        x = x.view(x.shape[0],-1)
-        encoded = self.encoder(x)
-        return encoded
-
-yahoo_model = Yahoo_Autoencoder(emb_dim=yahoo_emb_dim)
-yahoo_model.load_state_dict(torch.load('./models/r6a_autoencoder.pt'))
-yahoo_model.to(device)
-yahoo_model.eval()
-
-######################################################################
+import pandas as pd
 
 class movielens_Env:
-    def __init__(self,seed,p,K_max,private):
+    def __init__(self,seed, p, private, load_tail='', option='outer'):
         np.random.seed(seed)
+        self.match_to_step = False
+        self.autoencoder, self.agg_ftn, self.d = Load_MovieLens(option=option, load_tail=load_tail)
         
-        sampling_rate = 1.0
-        self.subsampling = True
-        self.K_max = K_max
-        self.K_min = 15
-        self.p = p
         self.embed_dim = 50
         self.d = self.embed_dim
         
-        with open('./datasets/ml-100k/userwise_dictionary' + '.pickle', 'rb') as f:
-            self.userwise_dict = pickle.load(f)
-            
-        trim_ids = []
-        for user_id, v in self.userwise_dict.items():
-            if v[0].shape[0] < self.K_min: #number of arms 
-                trim_ids.append(user_id)
-        for user_id in trim_ids:
-            self.userwise_dict.pop(user_id)
-            
-        self.target_ids = np.array(list(self.userwise_dict.keys()))
-
+        #self.subsampling = False
+        self.p = p
+        
         self.env = 'movielens'
         self.private = private
         
         B = np.random.uniform(-1,1,(self.embed_dim,self.embed_dim))
         self.Sigma_n = B.T @ B
         
+        # Load filtered_dataset
+        self.filtered_data = pd.read_csv('./datasets/ml-100k/preprocess/filtered_data{}.csv'.format(load_tail))
+        # Load user_features dictionary
+        with open('./datasets/ml-100k/preprocess/user_id_to_feature{}.pickle'.format(load_tail), 'rb') as f:
+            self.user_id_to_feature = pickle.load(f)
+        # Load top_movie_features
+        self.top_movies_array = np.load('./datasets/ml-100k/preprocess/top_movies_array{}.npy'.format(load_tail))
+        
+        self.K = self.top_movies_array.shape[0]
+        self.K_max, self.K_min = self.K, self.K
+        
+        # For iteration for the Dataframe
+        self.row_head = 0
+        self.unused_data = self.filtered_data.copy()
+        self.used_idx = []
+        self.len_data = len(self.unused_data)
+        
     def load_data(self):
         
-        user_id = np.random.choice(self.target_ids)
+        # Move Reading Head
+        self.row_head += 1    
+    
+        # Reset unused_data dataframe with row_head achieves the last data
+        if self.row_head >= self.len_data:
+            self.unused_data.drop(self.unused_data.index[self.used_idx]) 
+            if len(self.unused_data) == 0:
+                self.unused_data = self.filtered_data.copy()
+            self.row_head = 0
+            self.used_idx = []
         
-        context = self.userwise_dict[user_id][0]
-        reward  = self.userwise_dict[user_id][1]
-        
-        self.K = context.shape[0]
+        user_id  = self.unused_data.loc[self.row_head,"user_id"]
+        movie_id = self.unused_data.loc[self.row_head,"movie_id"]
+        self.reward   = self.unused_data.loc[self.row_head,"reward"]
         self.arms = np.arange(self.K)
-        self.x = context
-        self.reward = reward
+        self.chosen_idx = movie_id
         
-        if self.subsampling:
-            idxs_subsample, token_subsample = self._subsampling()
-            if token_subsample:
-                self.K = self.K_max
-                self.arms = np.arange(self.K)
-                self.x = self.x[idxs_subsample,:]
-                self.reward = self.reward[idxs_subsample]
+        # Construct the Context Feature
+        context_list = []
+        user_feature = self.user_id_to_feature[user_id]
+        for i in range(self.K):
+            movie_feature= self.top_movies_array[i,:]
+            context_list.append(self.agg_ftn(user_feature, movie_feature))
+        self.x = np.vstack(context_list).copy()
         
-        self.m = np.zeros((len(self.arms),self.embed_dim))
+        with torch.no_grad():
+            x = torch.from_numpy(self.x).type(torch.FloatTensor).to(device)
+            x = self.autoencoder.encoding_result(x)
+            self.x = x.cpu().numpy()
+        
+        self.m = np.zeros((len(self.arms),self.d))
         for k in range(len(self.arms)):
-            self.m[k] = np.random.binomial(1, self.p, self.embed_dim)
+            self.m[k] = np.random.binomial(1, self.p, self.d)
             if self.private == False:
                 self.x[k] = self.x[k] * self.m[k]
             else:
-                noise = np.random.multivariate_normal(np.zeros(self.embed_dim), self.Sigma_n, 1)
+                noise = np.random.multivariate_normal(np.zeros(self.d), self.Sigma_n, 1)
                 self.x[k] = (self.x[k] + noise) * self.m[k]
-
-    def _subsampling(self):
-        
-        idx_0reward = np.where(self.reward == 0)[0]
-        n_0 = idx_0reward.shape[0]
-        idx_1reward = np.where(self.reward == 1)[0]
-        n_1 = idx_1reward.shape[0]
-        
-        if self.K > self.K_max and self.subsampling:
-            '''
-            n_1f = math.ceil(self.K_max * n_1 / (n_0 + n_1))
-            n_0f = self.K_max - n_1f
-            
-            subsample_idx_0reward = np.random.choice(idx_0reward,size=n_0f,replace=False)
-            subsample_idx_1reward = np.random.choice(idx_1reward,size=n_1f,replace=False)
-            
-            subsample_idx = np.concatenate((subsample_idx_0reward,subsample_idx_1reward))
-            '''
-            subsample_idx = np.random.choice(np.arange(self.K),size=self.K_max,replace=False)
-            return subsample_idx, True
-        
-        else:
-            return np.arange(self.K), False
+                
+    def write_used_idx(self):
+        self.used_idx.append(self.row_head)
         
     def observe(self, k):
         
-        exp_reward = self.reward[k]
+        if k == self.chosen_idx:
+            exp_reward = self.reward
+        else:
+            exp_reward = 0
         reward = exp_reward
         
         return exp_reward,reward         
@@ -132,28 +106,28 @@ class movielens_Env:
 ######################################################################
 
 class yahoo_Env:
-    def __init__(self,seed,p,K_max,private):
+    def __init__(self,seed, p, K_max, private, load_tail='', option='outer'):
         np.random.seed(seed)
+        self.match_to_step = False
         self.f = open('datasets/R6A/ydata-fp-td-clicks-v1_0.20090501')
-        sampling_rate = 1.0
+        self.autoencoder, self.agg_ftn, self.d = Load_Yahoo(option=option, load_tail=load_tail)
+        
         self.subsampling = True
         self.K_max = K_max
-        
         self.p = p
-        self.embed_dim = 10
-        self.d = self.embed_dim
         
         self.env = 'yahoo'
         self.private = private
         
-        B = np.random.uniform(-1,1,(self.embed_dim,self.embed_dim))
+        B = np.random.uniform(-1,1,(self.d,self.d))
         self.Sigma_n = B.T @ B
-        
-#         self.r_mask = np.random.RandomState(seed)
-#         self.r_subsample = np.random.RandomState(seed+1)
         
     def load_data(self):
         line = self.f.readline()
+        if not line:
+            self.f.seek(0) # back to top
+            line = self.f.readline() # read again
+        
         self.data_preprocess(line.strip().split(' |'))   
         
         if self.subsampling and len(self.arms) > self.K_max:
@@ -183,29 +157,29 @@ class yahoo_Env:
             self.arms.append(arm)
             self.arm_contexts.append(context)
             
-        self.x = np.outer(self.user_context, self.arm_contexts[0]).flatten()
+        self.x = self.agg_ftn(self.user_context, self.arm_contexts[0])
 
         for j in range(1, len(self.arm_contexts)):
-            self.x = np.vstack((self.x, np.outer(self.user_context, self.arm_contexts[j]).flatten()))
+            self.x = np.vstack((self.x,self.agg_ftn(self.user_context, self.arm_contexts[j])))
 
         with torch.no_grad():
             x = torch.from_numpy(self.x).type(torch.FloatTensor).to(device)
-            x = yahoo_model.encoding_result(x)
+            x = self.autoencoder.encoding_result(x)
             self.x = x.cpu().numpy()
         
         self.chosen_idx = self.arms.index(self.chosen_arm)
-        self.m = np.zeros((len(self.arms),self.embed_dim))
+        self.m = np.zeros((len(self.arms),self.d))
 
         for k in range(len(self.arms)):
-            self.m[k] = np.random.binomial(1, self.p, self.embed_dim)
+            self.m[k] = np.random.binomial(1, self.p, self.d)
             if self.private == False:
                 self.x[k] = self.x[k] * self.m[k]
             else:
-                noise = np.random.multivariate_normal(np.zeros(self.embed_dim), self.Sigma_n, 1)
+                noise = np.random.multivariate_normal(np.zeros(self.d), self.Sigma_n, 1)
                 self.x[k] = (self.x[k] + noise) * self.m[k]
             
     def parse_context(self,raw_context):
-#         print(raw_context)
+        
         if raw_context[0] == 'user':
             arm = 'user'
         else:
@@ -217,15 +191,32 @@ class yahoo_Env:
             context[int(idx_ctx[0])-1] = float(idx_ctx[1])
 
         return arm, context
-
-    def observe(self,k):
-        return bool(self.is_clicked),bool(self.is_clicked)
     
+    def write_used_idx(self):
+        pass
+    
+    def observe(self, k):
+        
+        if self.match_to_step:
+            return bool(self.is_clicked), bool(self.is_clicked)
+        
+        else:
+            if k == self.chosen_idx:
+                exp_reward = bool(self.is_clicked)
+            else:
+                exp_reward = 0
+            reward = exp_reward
+
+            return exp_reward,reward  
+
+######################################################################
     
 class noisy_linear_Env:
     def __init__(self,seed,p,d,K):
         np.random.seed(seed)
         self.env='synthetic'
+        self.match_to_step = False
+        
         self.exp_reward=0
         self.p, self.d, self.K, self.K_max = p, d, K, K
         self.K_max=self.K
@@ -251,6 +242,7 @@ class noisy_linear_Env:
 #         self.actset=np.zeros((T,K))
         self.x_bar=np.zeros((self.K,self.d))
         self.exp_reward_opt=[]
+        
     def load_data(self):
         for k in range(self.K): #feature generation
             self.z[k]=np.random.multivariate_normal(self.nu, self.Sigma_f, 1)
@@ -278,7 +270,10 @@ class noisy_linear_Env:
         self.exp_reward_opt.append(self.z[int(self.opt_arm)]@self.theta)
 #             print(self.opt_arm[t])
 
+    def write_used_idx(self):
+        pass
+
     def observe(self,k): #reward feedback
         reward=self.z[k]@self.theta+np.random.normal(0,1)
         exp_reward=self.z[k]@self.theta
-        return exp_reward,reward         
+        return exp_reward,reward

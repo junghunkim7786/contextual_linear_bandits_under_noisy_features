@@ -2,9 +2,11 @@ datasets/ml-100k/raw/**
 
 datasets/R6A/**
 !datasets/R6A/README.md
-!datasets/R6A/train_autoencoders.ipynb
+!datasets/R6A/R6A_preprocess.ipynb
 
 .ipynb_checkpoints/
 __pycache__/
 result/
+
 gitinit.sh
+_backup.py

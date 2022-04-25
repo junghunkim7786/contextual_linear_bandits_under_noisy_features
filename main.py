@@ -24,15 +24,20 @@ if __name__=='__main__':
     if opt=='1':
         p=0.9
         #K=5 # Yahoo
-        K = 50
+        K = 10
         #T=1000 # Yahoo
-        T= 50000
-        private=True
-        repeat=1
-        run_real(p,K,T,repeat,private,run_bool)
+        T= 20000
+        #private=True
+        #repeat=1
+        #run_real(p,K,T,repeat,private,run_bool)
         private=False
 #         repeat=1
-        run_real(p,K,T,repeat,private,run_bool)
+        #run_real(p=0.9,K=10,T=20000,repeat=1,private=False,run_bool)
+        # Yahoo
+        #run_real(p=0.9,K=5,T=20000,repeat=1,private=True,boolean=run_bool)
+        #run_real(p=0.9,K=5,T=20000,repeat=1,private=False,boolean=run_bool)
+        run_real(p=0.9,K=5,T=20000,repeat=1,private=True,boolean=run_bool)
+        run_real(p=0.9,K=5,T=20000,repeat=1,private=False,boolean=run_bool)
     
     elif opt=='2':
         repeat=10
