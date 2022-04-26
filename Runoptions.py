@@ -301,8 +301,8 @@ def run_real(p,K,T,repeat,private,boolean=True):
 #             opti_rewards=Env.opt_reward(T)
 
             #Env=yahoo_Env(seed,p,K,private)
-            Env=movielens_Env(seed,p,private)
-            algorithm3=RandomPolicy(T,seed,Env)
+            # Env=movielens_Env(seed,p,private)
+            # algorithm3=RandomPolicy(T,seed,Env)
 
             regret=algorithm1.rewards()
             regret_sum=np.cumsum(regret)
@@ -315,10 +315,10 @@ def run_real(p,K,T,repeat,private,boolean=True):
             regret_sum_list2[i,:]=regret_sum
             avg_regret_sum2+=regret_sum
             
-            regret=algorithm3.rewards()
-            regret_sum=np.cumsum(regret)
-            regret_sum_list3[i,:]=regret_sum
-            avg_regret_sum3+=regret_sum
+            # regret=algorithm3.rewards()
+            # regret_sum=np.cumsum(regret)
+            # regret_sum_list3[i,:]=regret_sum
+            # avg_regret_sum3+=regret_sum
             
             
         time=np.array(range(1,T+1))    
@@ -326,18 +326,18 @@ def run_real(p,K,T,repeat,private,boolean=True):
         sd1=np.std(regret_sum_list1,axis=0)
         avg2=avg_regret_sum2
         sd2=np.std(regret_sum_list2,axis=0)
-        avg3=avg_regret_sum3
-        sd3=np.std(regret_sum_list3,axis=0)
+        # avg3=avg_regret_sum3
+        # sd3=np.std(regret_sum_list3,axis=0)
         
-        algorithms = ['CLBEF','OFUL','RANDOM']
+        algorithms = ['CLBEF','OFUL']
         regret = dict()
         std=dict()
         regret['CLBEF']=avg1
         std['CLBEF']=sd1
         regret['OFUL']=avg2
         std['OFUL']=sd2
-        regret['RANDOM']=avg3
-        std['RANDOM']=sd3
+        # regret['RANDOM']=avg3
+        # std['RANDOM']=sd3
         ##Save data
         d = 30
         filename_1='T'+str(T)+'d'+str(d)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'private'+str(private)+'regret.txt'
@@ -379,7 +379,7 @@ def run_real(p,K,T,repeat,private,boolean=True):
 #         sd2=std['OFUL']      
 ###Plot    
 
-
+    times=np.array(range(1,T+1))
     T_p=int(T/20)
     fig, ax = plt.subplots()
     ax.tick_params(labelsize=15)
@@ -390,7 +390,7 @@ def run_real(p,K,T,repeat,private,boolean=True):
     # plot 
     plt.gcf().subplots_adjust(bottom=0.15)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    ax.plot(range(T),avg3,color='red',label='RAMDOM',marker='s', markersize=8,markevery=T_p)
+    # ax.plot(range(T),avg3,color='red',label='RAMDOM',marker='s', markersize=8,markevery=T_p)
     ax.plot(range(T),avg2,color='orange',label='OFUL',marker='o', markersize=8,markevery=T_p)
     ax.plot(range(T),avg1,color='b',label='CLBEF',marker='^', markersize=8,markevery=T_p)
 #     ax.fill_between(range(T), (avg1-1.96*sd1/np.sqrt(repeat)), (avg1+1.96*sd1/np.sqrt(repeat)), color='orange', alpha=.1 )

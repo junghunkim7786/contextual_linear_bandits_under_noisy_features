@@ -54,11 +54,10 @@ def _CLBEF_x_bar(nu, x_hat, Sigma, x, m):
     return x_hat
 
 class CLBEF:
-    def __init__(self,T,seed,Environment,exploration=False):
+    def __init__(self,T,seed,Environment):
         print('Algorithm: CLBEF')
         self.Env = Environment
         self.match_to_step = self.Env.match_to_step
-        self.exploration = exploration
         np.random.seed(seed)
         
         self.d  = self.Env.d
@@ -108,23 +107,19 @@ class CLBEF:
                 except:
                     continue
                 
-                if t<self.tau and self.exploration==True:
-                    chosen_arm=np.random.choice(range(K))    
                 
-                elif t==0 and self.exploration==False:
+                if t==0:
                     chosen_arm=np.random.choice(range(K))
                     
                 else: 
-                    if self.exploration==False and t==2**self.i:
+                    if t==2**self.i:
                         self.V=(self.d+1) * math.log(self.Env.K_max * self.T) * np.identity(self.d+1)
                         self.xy=np.zeros(self.d+1)
                         for s in range(t):
                             x=self.x_his[s]
                             m=self.m_his[s]
-                            try:
-                                x_hat=np.insert(self._x_bar(self.nu_hat,self.Sigma_hat,x,m),0,1)
-                            except:
-                                continue
+                            x_hat=np.insert(self._x_bar(self.nu_hat,self.Sigma_hat,x,m),0,1)
+
                             self.V+=np.outer(x_hat,x_hat)
                             self.xy+=x_hat*self.r[s]
 
@@ -144,7 +139,7 @@ class CLBEF:
                     bool_ = False
                     self.Env.write_used_idx()
                     
-            if self.exploration==False and t==2**self.i:
+            if t==2**self.i:
                 self.i=self.i+1
                     
             self.n=n_tmp
@@ -156,13 +151,9 @@ class CLBEF:
             self.x_his.append(x_t[chosen_arm])
             self.m_his.append(m_t[chosen_arm])
             
-            if self.exploration==False:
-                self.V+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
-                self.xy+=self.x_hat[chosen_arm]*self.r[t]            
+            self.V+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
+            self.xy+=self.x_hat[chosen_arm]*self.r[t]            
                 
-            elif t>self.tau:
-                self.V+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
-                self.xy+=self.x_hat[chosen_arm]*self.r[t]
 
     
     def _get_UCB(self, x_hat, t, K):
@@ -240,7 +231,7 @@ class OFUL:
                 else:
                     bool_ = False
                     self.Env.write_used_idx()
-           
+
             self.r_Exp[t],self.r[t]=self.Env.observe(chosen_arm)
             self.V+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
             self.y+=self.x_hat[chosen_arm]*self.r[t]
