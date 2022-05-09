@@ -53,8 +53,8 @@ def outer1_agg(user_feature, item_feature):
 def Load_Yahoo(option,load_tail):
     
     if not option in ['concat','outer','outer1']:
-        raise NotImplemented
-        return None, None
+        # raise NotImplemented
+        return None, None, None
     
     if option == 'concat':
         agg_ftn = concat_agg

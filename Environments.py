@@ -106,11 +106,14 @@ class movielens_Env:
 ######################################################################
 
 class yahoo_Env:
-    def __init__(self,seed, p, K_max, private, load_tail='', option='outer'):
+    def __init__(self,seed, p, K_max, private, load_tail='', option='raw',ind='01'):
         np.random.seed(seed)
-        self.match_to_step = False
-        self.f = open('datasets/R6A/ydata-fp-td-clicks-v1_0.20090501')
-        self.autoencoder, self.agg_ftn, self.d = Load_Yahoo(option=option, load_tail=load_tail)
+        self.match_to_step = True
+        self.f = open('datasets/R6A/yahoo-a1.txt')
+        self.option=option
+        self.autoencoder, self.agg_ftn, self.d = Load_Yahoo(option=self.option, load_tail=load_tail)
+        if option=='raw':
+            self.d=36
         
         self.subsampling = True
         self.K_max = K_max
@@ -156,16 +159,21 @@ class yahoo_Env:
             arm, context = self.parse_context(raw_data[i].split(' '))
             self.arms.append(arm)
             self.arm_contexts.append(context)
-            
-        self.x = self.agg_ftn(self.user_context, self.arm_contexts[0])
+        
+        if self.option=='raw':
+            self.x=np.outer(self.user_context, self.arm_contexts[0]).flatten().copy()
+            for j in range(1, len(self.arm_contexts)):
+                self.x = np.vstack((self.x,np.outer(self.user_context, self.arm_contexts[j]).flatten().copy()))            
+        else:    
+            self.x = self.agg_ftn(self.user_context, self.arm_contexts[0])
 
-        for j in range(1, len(self.arm_contexts)):
-            self.x = np.vstack((self.x,self.agg_ftn(self.user_context, self.arm_contexts[j])))
+            for j in range(1, len(self.arm_contexts)):
+                self.x = np.vstack((self.x,self.agg_ftn(self.user_context, self.arm_contexts[j])))
 
-        with torch.no_grad():
-            x = torch.from_numpy(self.x).type(torch.FloatTensor).to(device)
-            x = self.autoencoder.encoding_result(x)
-            self.x = x.cpu().numpy()
+            with torch.no_grad():
+                x = torch.from_numpy(self.x).type(torch.FloatTensor).to(device)
+                x = self.autoencoder.encoding_result(x)
+                self.x = x.cpu().numpy()
         
         self.chosen_idx = self.arms.index(self.chosen_arm)
         self.m = np.zeros((len(self.arms),self.d))
@@ -187,6 +195,9 @@ class yahoo_Env:
 
         context = np.zeros(6)
         for i in range(1, len(raw_context)):
+            # idx_ctx = raw_context[i].split(':')
+            # context[int(idx_ctx[0])-2] = float(idx_ctx[1])        # context = np.zeros(6)
+        # for i in range(1, len(raw_context)):
             idx_ctx = raw_context[i].split(':')
             context[int(idx_ctx[0])-1] = float(idx_ctx[1])
 
@@ -230,7 +241,9 @@ class noisy_linear_Env:
         A=np.random.uniform(-1,1,(self.d,self.d))
         B=np.random.uniform(-1,1,(self.d,self.d))
         self.Sigma_f=A.T@A
+        self.Sigma_f=self.Sigma_f/np.linalg.norm(self.Sigma_f,2)
         self.Sigma_n=B.T@B
+        self.Sigma_n=self.Sigma_n/np.linalg.norm(self.Sigma_f,2)
         self.Sigma=self.Sigma_f+self.Sigma_n
         
         self.opt_arm=0
@@ -242,6 +255,7 @@ class noisy_linear_Env:
 #         self.actset=np.zeros((T,K))
         self.x_bar=np.zeros((self.K,self.d))
         self.exp_reward_opt=[]
+        
         
     def load_data(self):
         for k in range(self.K): #feature generation
@@ -267,7 +281,9 @@ class noisy_linear_Env:
                 self.x_bar[k]=x_S
             temp[k]=self.x_bar[k]@self.theta_bar
         self.opt_arm=np.argmax(temp)
+        # self.opt_arm=np.random.choice(np.argwhere(temp==np.amax(temp)).flatten().tolist())
         self.exp_reward_opt.append(self.z[int(self.opt_arm)]@self.theta)
+        self.opt_arm_origin=np.argmax(self.z@self.theta)
 #             print(self.opt_arm[t])
 
     def write_used_idx(self):

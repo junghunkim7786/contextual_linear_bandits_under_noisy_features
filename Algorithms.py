@@ -149,6 +149,7 @@ class CLBEF:
             
             self.r_Exp[t], self.r[t] = self.Env.observe(chosen_arm)
             self.x_his.append(x_t[chosen_arm])
+
             self.m_his.append(m_t[chosen_arm])
             
             self.V+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
