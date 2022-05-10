@@ -49,6 +49,7 @@ if __name__=='__main__':
     
     elif opt=='2':
         repeat=10
+        d=3
         T=10000
         p=0.7
         K=10
@@ -57,9 +58,10 @@ if __name__=='__main__':
         run1(p,d,K,T,repeat,run_bool)
         
     elif opt=='3':
+        d=3
         repeat=10
         T=10000
-        p_list=[1,0.95,0.9,0.85,0.8,0.75,0.7]
+        p_list=[1,0.95,0.9,0.85,0.8,0.75,0.7,0.65]
         K=10
         run_p(p_list,d,K,T,repeat,run_bool)  
         K=2

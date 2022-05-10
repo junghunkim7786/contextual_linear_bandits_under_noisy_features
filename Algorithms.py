@@ -4,7 +4,6 @@ import math
 from tqdm import tqdm
 from numpy.random import seed
 from numpy.random import rand
-from Environments import *
 from numba import jit
 
 ######################################################################################
@@ -14,7 +13,6 @@ def _CLBEF_get_UCB(x_hat, t, K, theta_hat, d, T, V_inv):
     return x_hat@theta_hat+\
             (np.sqrt((d+1)*np.log((t+2)*T))+\
              np.sqrt(d*np.log(K*T)))*np.sqrt(x_hat@V_inv@x_hat.T)
-
 
 @jit(nopython=True, cache=False)  # cache=False only for performance comparison
 def numba_ix(arr, rows, cols):
@@ -54,9 +52,9 @@ def _CLBEF_x_bar(nu, x_hat, Sigma, x, m):
     return x_hat
 
 class CLBEF:
-    def __init__(self,T,seed,Environment):
+    def __init__(self,T,seed,Env):
         print('Algorithm: CLBEF')
-        self.Env = Environment
+        self.Env = Env
         self.match_to_step = self.Env.match_to_step
         np.random.seed(seed)
         
@@ -86,59 +84,55 @@ class CLBEF:
     def run(self):
         
         for t in tqdm(range(self.T)):
-            bool_=True
-            while bool_:
-                self.Env.load_data()
-                
-                x_t=self.Env.x.copy()
-                m_t=self.Env.m.copy()
-                K=self.Env.K
-                K_sum_tmp=self.K_sum+K
-                n_tmp=self.n
-                Z_tmp=self.Z
-                xi_tmp=self.xi
-                for k in range(K):
-                    n_tmp=n_tmp+m_t[k].sum()
-                    Z_tmp=Z_tmp+np.outer(x_t[k],x_t[k])
-                    xi_tmp=xi_tmp+x_t[k]
-                    
-                try:
-                    self.p_hat, self.nu_hat, self.Sigma_hat, self.x_hat = self._get_estimator(K,x_t,m_t,K_sum_tmp,xi_tmp,n_tmp,Z_tmp)
-                except:
-                    continue
-                
-                
-                if t==0:
-                    chosen_arm=np.random.choice(range(K))
-                    
-                else: 
-                    if t==2**self.i:
-                        self.V=(self.d+1) * math.log(self.Env.K_max * self.T) * np.identity(self.d+1)
-                        self.xy=np.zeros(self.d+1)
-                        for s in range(t):
-                            x=self.x_his[s]
-                            m=self.m_his[s]
+            self.Env.load_data()
+
+            x_t=self.Env.x.copy()
+            m_t=self.Env.m.copy()
+            K=self.Env.K
+            K_sum_tmp=self.K_sum+K
+            n_tmp=self.n
+            Z_tmp=self.Z
+            xi_tmp=self.xi
+            for k in range(K):
+                n_tmp=n_tmp+m_t[k].sum()
+                Z_tmp=Z_tmp+np.outer(x_t[k],x_t[k])
+                xi_tmp=xi_tmp+x_t[k]
+
+            try:
+                self.p_hat, self.nu_hat, self.Sigma_hat, self.x_hat = self._get_estimator(K,x_t,m_t,K_sum_tmp,xi_tmp,n_tmp,Z_tmp)
+            except:
+                continue
+
+            if t==0:
+                chosen_arm=np.random.choice(range(K))
+
+            else: 
+                if t==2**self.i:
+                    self.V=(self.d+1) * math.log(self.Env.K_max * self.T) * np.identity(self.d+1)
+                    self.xy=np.zeros(self.d+1)
+                    for s in range(t):
+                        x=self.x_his[s]
+                        m=self.m_his[s]
+                        try:
                             x_hat=np.insert(self._x_bar(self.nu_hat,self.Sigma_hat,x,m),0,1)
+                        except:
+                            continue
+                        self.V+=np.outer(x_hat,x_hat)
+                        self.xy+=x_hat*self.r[s]
 
-                            self.V+=np.outer(x_hat,x_hat)
-                            self.xy+=x_hat*self.r[s]
+                self.V_inv=np.linalg.pinv(self.V)
+                self.theta_hat=self.V_inv@self.xy.T
 
-                    self.V_inv=np.linalg.pinv(self.V)
-                    self.theta_hat=self.V_inv@self.xy.T
+                max_ucb=-np.inf
+                for k in range(K):
+                    ucb = self._get_UCB(self.x_hat[k], t, K)
+                    if ucb>max_ucb:
+                        chosen_arm=k
+                        max_ucb=ucb
 
-                    max_ucb=-np.inf
-                    for k in range(K):
-                        ucb = self._get_UCB(self.x_hat[k], t, K)
-                        if ucb>max_ucb:
-                            chosen_arm=k
-                            max_ucb=ucb
-                            
-                if self.match_to_step and chosen_arm != self.Env.chosen_idx:
-                    bool_ = True
-                else:
-                    bool_ = False
-                    self.Env.write_used_idx()
-                    
+
+            self.Env.write_used_idx()
+
             if t==2**self.i:
                 self.i=self.i+1
                     
@@ -149,12 +143,10 @@ class CLBEF:
             
             self.r_Exp[t], self.r[t] = self.Env.observe(chosen_arm)
             self.x_his.append(x_t[chosen_arm])
-
             self.m_his.append(m_t[chosen_arm])
             
             self.V+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
             self.xy+=self.x_hat[chosen_arm]*self.r[t]            
-                
 
     
     def _get_UCB(self, x_hat, t, K):
@@ -182,15 +174,15 @@ class CLBEF:
 ######################################################################################
 
 @jit(nopython=True)
-def _OFUL_get_UCB(x_hat, t, K, theta_hat, d, T, V):
+def _OFUL_get_UCB(x_hat, t, K, theta_hat, d, T, V_inv):
     return x_hat@theta_hat+\
             (np.sqrt((d+1)*np.log((t+2)*T))+\
-             np.sqrt(d*np.log(K*T)))*np.sqrt(x_hat@np.linalg.pinv(V)@x_hat.T)
+             np.sqrt(d*np.log(K*T)))*np.sqrt(x_hat@V_inv@x_hat.T)
     
 class OFUL:
-    def __init__(self,T,seed,Environment):
+    def __init__(self,T,seed,Env):
         print('Algorithm: OFUL')
-        self.Env = Environment
+        self.Env = Env
         self.match_to_step = self.Env.match_to_step
         np.random.seed(seed)
         
@@ -232,24 +224,28 @@ class OFUL:
                 else:
                     bool_ = False
                     self.Env.write_used_idx()
-
+                    
             self.r_Exp[t],self.r[t]=self.Env.observe(chosen_arm)
             self.V+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
             self.y+=self.x_hat[chosen_arm]*self.r[t]
+            
+            self.V_inv = np.linalg.pinv(self.V)
             self.theta_hat=np.linalg.pinv(self.V)@self.y    
     
     def _get_UCB(self, x_hat, t, K):
-        return _OFUL_get_UCB(x_hat, t, K, self.theta_hat, self.d, self.T, self.V)
+        return _OFUL_get_UCB(x_hat, t, K, self.theta_hat, self.d, self.T, self.V_inv)
             
     def rewards(self):
         return self.r_Exp
     
+######################################################################################
+    
 class RandomPolicy:
-    def __init__(self,T,seed,Environment):
+    def __init__(self,T,Env):
         print('Algorithm: Random Policy')
-        self.Env = Environment
+        self.Env = Env
         self.match_to_step = self.Env.match_to_step
-        np.random.seed(seed)
+        np.random.seed(self.Env.seed)
         
         self.r = np.zeros(T,float)
         self.r_Exp = np.zeros(T,float)

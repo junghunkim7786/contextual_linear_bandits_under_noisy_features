@@ -101,13 +101,13 @@ def run_arm(p,d,K,T,repeat,boolean=True):
 
     T_p=int(T/20)
     fig, ax = plt.subplots()
-    ax.tick_params(labelsize=15)
-    plt.rc('legend',fontsize=15)
-    ax.yaxis.get_offset_text().set_fontsize(15)
-    ax.xaxis.get_offset_text().set_fontsize(15)
+    ax.tick_params(labelsize=18)
+    plt.rc('legend',fontsize=18)
+    ax.yaxis.get_offset_text().set_fontsize(18)
+    ax.xaxis.get_offset_text().set_fontsize(18)
 
     # plot 
-    plt.gcf().subplots_adjust(bottom=0.15)
+    plt.gcf().subplots_adjust(bottom=0.18)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
     ax.plot(range(T),avg2,color='orange',label='OFUL',marker='o', markersize=8,markevery=T_p)
     ax.fill_between(range(T), (avg2-1.96*sd2/np.sqrt(repeat)), (avg2+1.96*sd2/np.sqrt(repeat)), color='orange', alpha=.1 )
@@ -115,9 +115,9 @@ def run_arm(p,d,K,T,repeat,boolean=True):
     ax.plot(range(T),avg1,color='b',label='CLBEF',marker='^', markersize=8,markevery=T_p)
     ax.fill_between(range(T), (avg1-1.96*sd1/np.sqrt(repeat)), (avg1+1.96*sd1/np.sqrt(repeat)), color='b', alpha=.1 )
 
-    plt.xlabel('Time step '+r'$t$',fontsize=15)
-    plt.ylabel('Cumulative Regret',fontsize=15)
-    plt.title(r'Missing probability $1-p={}$'.format(round(1-p,2)),fontsize=15)
+    plt.xlabel('Time step '+r'$t$',fontsize=18)
+    plt.ylabel('Cumulative Regret',fontsize=18)
+    plt.title(r'Missing probability $1-p={}$'.format(round(1-p,2)),fontsize=18)
     plt.legend(loc='upper left')
     plt.savefig('./result/T'+str(T)+'d'+str(d)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'.png')
     plt.show()
@@ -245,10 +245,10 @@ def run_p(p_list,d,K,T,repeat,boolean=True):
 
     
     #font size
-    ax.tick_params(labelsize=15)
-    plt.rc('legend',fontsize=15)
-    ax.yaxis.get_offset_text().set_fontsize(15)
-    ax.xaxis.get_offset_text().set_fontsize(15)
+    ax.tick_params(labelsize=18)
+    plt.rc('legend',fontsize=18)
+    ax.yaxis.get_offset_text().set_fontsize(18)
+    ax.xaxis.get_offset_text().set_fontsize(18)
 
     # remove the errorbars in legend
     handles, labels = ax.get_legend_handles_labels()
@@ -257,9 +257,9 @@ def run_p(p_list,d,K,T,repeat,boolean=True):
     # plot 
     plt.gcf().subplots_adjust(bottom=0.15)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    plt.title(r'$K={}$'.format(K),fontsize=15)
-    plt.xlabel(r'Missing probability $1-p$',fontsize=15)
-    plt.ylabel(r'$R(T)$',fontsize=15)
+    plt.title(r'$K={}$'.format(K),fontsize=18)
+    plt.xlabel(r'Missing probability $1-p$',fontsize=18)
+    plt.ylabel(r'$R(T)$',fontsize=18)
     plt.savefig('./result/T'+str(T)+'K'+str(K)+'repeat'+str(repeat)+'p_list'+'.png')
     plt.show()
     plt.clf()        
@@ -355,10 +355,10 @@ def run1(p,d,K,T,repeat,boolean=True):
 
     T_p=int(T/20)
     fig, ax = plt.subplots()
-    ax.tick_params(labelsize=15)
-    plt.rc('legend',fontsize=15)
-    ax.yaxis.get_offset_text().set_fontsize(15)
-    ax.xaxis.get_offset_text().set_fontsize(15)
+    ax.tick_params(labelsize=18)
+    plt.rc('legend',fontsize=18)
+    ax.yaxis.get_offset_text().set_fontsize(18)
+    ax.xaxis.get_offset_text().set_fontsize(18)
 
     # plot 
     plt.gcf().subplots_adjust(bottom=0.15)
@@ -369,9 +369,9 @@ def run1(p,d,K,T,repeat,boolean=True):
     ax.plot(range(T),avg1,color='b',label='Algorithm 1',marker='^', markersize=8,markevery=T_p)
     ax.fill_between(range(T), (avg1-1.96*sd1/np.sqrt(repeat)), (avg1+1.96*sd1/np.sqrt(repeat)), color='b', alpha=.1 )
 
-    plt.xlabel('Time step '+r'$t$',fontsize=15)
-    plt.ylabel('Cumulative Regret',fontsize=15)
-    plt.title(r'Missing probability $1-p={}$'.format(round(1-p,2)),fontsize=15)
+    plt.xlabel('Time step '+r'$t$',fontsize=18)
+    plt.ylabel('Cumulative Regret',fontsize=18)
+    plt.title(r'Missing probability $1-p={}$'.format(round(1-p,2)),fontsize=18)
     plt.legend(loc='upper left')
     plt.savefig('./result/T'+str(T)+'d'+str(d)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'.png')
     plt.show()
@@ -492,10 +492,10 @@ def run_real(p,K,T,repeat,private,ind,boolean=True):
     times=np.array(range(1,T+1))
     T_p=int(T/20)
     fig, ax = plt.subplots()
-    ax.tick_params(labelsize=15)
-    plt.rc('legend',fontsize=15)
-    ax.yaxis.get_offset_text().set_fontsize(15)
-    ax.xaxis.get_offset_text().set_fontsize(15)
+    ax.tick_params(labelsize=18)
+    plt.rc('legend',fontsize=18)
+    ax.yaxis.get_offset_text().set_fontsize(18)
+    ax.xaxis.get_offset_text().set_fontsize(18)
 
     # plot 
     plt.gcf().subplots_adjust(bottom=0.15)
@@ -506,9 +506,9 @@ def run_real(p,K,T,repeat,private,ind,boolean=True):
 #     ax.fill_between(range(T), (avg1-1.96*sd1/np.sqrt(repeat)), (avg1+1.96*sd1/np.sqrt(repeat)), color='orange', alpha=.1 )
 #     ax.fill_between(range(T), (avg2-1.96*sd2/np.sqrt(repeat)), (avg2+1.96*sd2/np.sqrt(repeat)), color='b', alpha=.1 )
     
-    plt.xlabel('Time step '+r'$t$',fontsize=15)
-    plt.ylabel('Cumulative Reward',fontsize=15)
-    plt.title(r'Missing probability $1-p={}$'.format(round(1-p,2)),fontsize=15)
+    plt.xlabel('Time step '+r'$t$',fontsize=18)
+    plt.ylabel('Cumulative Reward',fontsize=18)
+    plt.title(r'Missing probability $1-p={}$'.format(round(1-p,2)),fontsize=18)
     plt.legend(loc='upper left')
     plt.savefig('./result/T'+str(T)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'private'+str(private)+'option'+option+'ind'+ind+'.png')
     plt.show()
