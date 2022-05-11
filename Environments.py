@@ -224,7 +224,8 @@ class yahoo_Env:
     
 class noisy_linear_Env:
     def __init__(self,seed,p,d,K):
-        np.random.seed(seed)
+        self.seed=seed
+        np.random.seed(self.seed)
         self.env='synthetic'
         self.match_to_step = False
         
