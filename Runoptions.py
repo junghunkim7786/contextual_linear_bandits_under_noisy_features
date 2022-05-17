@@ -128,7 +128,8 @@ def run_p(p_list,d,K,T,repeat,boolean=True):
             std_list2[i]=sd2[T-1]
 
     p_list=[1-p for p in p_list]
-    
+    plt.figure(figsize=(8,6))
+
     fig,(ax)=plt.subplots(1,1)
     ax.errorbar(x=p_list, y=regret_list2, yerr=1.96*std_list2/np.sqrt(repeat), color="orange", capsize=3,
                  marker="o", markersize=10,label='OFUL',zorder=1)
@@ -136,7 +137,6 @@ def run_p(p_list,d,K,T,repeat,boolean=True):
                  marker="^", markersize=10,label='Algorithm 1',zorder=2) 
 
 
-    
     #font size
     ax.tick_params(labelsize=20)
     plt.rc('legend',fontsize=20)
@@ -150,10 +150,10 @@ def run_p(p_list,d,K,T,repeat,boolean=True):
     # plot 
     plt.gcf().subplots_adjust(bottom=0.17)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    plt.title(r'$K={}$'.format(K),fontsize=20)
-    plt.xlabel(r'Missing probability $1-p$',fontsize=20)
-    plt.ylabel(r'$R(T)$',fontsize=20)
-    plt.savefig('./result/T'+str(T)+'K'+str(K)+'repeat'+str(repeat)+'p_list'+'.png')
+    plt.title(r'$K={}$'.format(K),fontsize=30,pad=10)
+    plt.xlabel(r'Missing probability $1-p$',fontsize=24)
+    plt.ylabel(r'$R(T)$',fontsize=24)
+    plt.savefig('./result/T'+str(T)+'K'+str(K)+'repeat'+str(repeat)+'p_list'+'.png',dpi=600)
     plt.show()
     plt.clf()        
     
@@ -245,7 +245,7 @@ def run1(p,d,K,T,repeat,boolean=True):
 ###Plot    
 
 
-
+    plt.figure(figsize=(8,6))
     T_p=int(T/20)
     fig, ax = plt.subplots()
     ax.tick_params(labelsize=20)
@@ -262,11 +262,11 @@ def run1(p,d,K,T,repeat,boolean=True):
     ax.plot(range(T),avg1,color='b',label='Algorithm 1',marker='^', markersize=10,markevery=T_p)
     ax.fill_between(range(T), (avg1-1.96*sd1/np.sqrt(repeat)), (avg1+1.96*sd1/np.sqrt(repeat)), color='b', alpha=.1 )
 
-    plt.xlabel('Time step '+r'$t$',fontsize=20)
-    plt.ylabel('Cumulative Regret',fontsize=20)
-    plt.title(r'$1-p={}$'.format(round(1-p,2)),fontsize=20)
-    plt.legend(loc='upper left')
-    plt.savefig('./result/T'+str(T)+'d'+str(d)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'.png')
+    plt.xlabel('Time step '+r'$t$',fontsize=24)
+    plt.ylabel('Cumulative Regret',fontsize=24)
+    plt.title(r'$1-p={}$'.format(round(1-p,2)),fontsize=30,pad=10)
+    plt.legend(loc='best')
+    plt.savefig('./result/T'+str(T)+'d'+str(d)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'.png',dpi=600)
     plt.show()
     plt.clf()
 
