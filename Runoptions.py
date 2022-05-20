@@ -128,20 +128,21 @@ def run_p(p_list,d,K,T,repeat,boolean=True):
             std_list2[i]=sd2[T-1]
 
     p_list=[1-p for p in p_list]
-    plt.figure(figsize=(8,6))
+    # plt.figure(figsize=(8,6))
 
     fig,(ax)=plt.subplots(1,1)
-    ax.errorbar(x=p_list, y=regret_list2, yerr=1.96*std_list2/np.sqrt(repeat), color="orange", capsize=3,
-                 marker="o", markersize=10,label='OFUL',zorder=1)
-    ax.errorbar(x=p_list, y=regret_list1, yerr=1.96*std_list1/np.sqrt(repeat), color="b", capsize=3,
-                 marker="^", markersize=10,label='Algorithm 1',zorder=2) 
+    fig.set_size_inches(8, 6)
+    ax.errorbar(x=p_list, y=regret_list2, yerr=1.96*std_list2/np.sqrt(repeat), color="lightsalmon", capsize=3,
+                 marker="^", markersize=16,label='OFUL',zorder=1)
+    ax.errorbar(x=p_list, y=regret_list1, yerr=1.96*std_list1/np.sqrt(repeat), color="royalblue", capsize=3,
+                 marker="o", markersize=15,label='Algorithm 1',zorder=2) 
 
 
     #font size
-    ax.tick_params(labelsize=20)
-    plt.rc('legend',fontsize=20)
-    ax.yaxis.get_offset_text().set_fontsize(20)
-    ax.xaxis.get_offset_text().set_fontsize(20)
+    ax.tick_params(labelsize=22)
+    plt.rc('legend',fontsize=22)
+    ax.yaxis.get_offset_text().set_fontsize(22)
+    ax.xaxis.get_offset_text().set_fontsize(22)
 
     # remove the errorbars in legend
     handles, labels = ax.get_legend_handles_labels()
@@ -150,10 +151,10 @@ def run_p(p_list,d,K,T,repeat,boolean=True):
     # plot 
     plt.gcf().subplots_adjust(bottom=0.17)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    plt.title(r'$K={}$'.format(K),fontsize=30,pad=10)
-    plt.xlabel(r'Missing probability $1-p$',fontsize=24)
-    plt.ylabel(r'$R(T)$',fontsize=24)
-    plt.savefig('./result/T'+str(T)+'K'+str(K)+'repeat'+str(repeat)+'p_list'+'.png',dpi=600)
+    plt.title(r'$K={}$'.format(K),fontsize=25,pad=10)
+    plt.xlabel(r'Missing probability $1-p$',fontsize=25)
+    plt.ylabel(r'$R(T)$',fontsize=25)
+    plt.savefig('./result/T'+str(T)+'K'+str(K)+'repeat'+str(repeat)+'p_list'+'.png',dpi=300)
     plt.show()
     plt.clf()        
     
@@ -245,28 +246,29 @@ def run1(p,d,K,T,repeat,boolean=True):
 ###Plot    
 
 
-    plt.figure(figsize=(8,6))
-    T_p=int(T/20)
+    T_p=int(T/10)
     fig, ax = plt.subplots()
-    ax.tick_params(labelsize=20)
-    plt.rc('legend',fontsize=20)
-    ax.yaxis.get_offset_text().set_fontsize(20)
-    ax.xaxis.get_offset_text().set_fontsize(20)
+    fig.set_size_inches(8, 6)
+
+    ax.tick_params(labelsize=22)
+    plt.rc('legend',fontsize=22)
+    ax.yaxis.get_offset_text().set_fontsize(22)
+    ax.xaxis.get_offset_text().set_fontsize(22)
 
     # plot 
     plt.gcf().subplots_adjust(bottom=0.17)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    ax.plot(range(T),avg2,color='orange',label='OFUL',marker='o', markersize=10,markevery=T_p)
-    ax.fill_between(range(T), (avg2-1.96*sd2/np.sqrt(repeat)), (avg2+1.96*sd2/np.sqrt(repeat)), color='orange', alpha=.1 )
+    ax.plot(range(T),avg2,color='lightsalmon',label='OFUL',marker='^', markersize=16,markevery=T_p)
+    ax.fill_between(range(T), (avg2-1.96*sd2/np.sqrt(repeat)), (avg2+1.96*sd2/np.sqrt(repeat)), color='lightsalmon', alpha=.2 )
     
-    ax.plot(range(T),avg1,color='b',label='Algorithm 1',marker='^', markersize=10,markevery=T_p)
-    ax.fill_between(range(T), (avg1-1.96*sd1/np.sqrt(repeat)), (avg1+1.96*sd1/np.sqrt(repeat)), color='b', alpha=.1 )
+    ax.plot(range(T),avg1,color='royalblue',label='Algorithm 1',marker='o', markersize=15,markevery=T_p)
+    ax.fill_between(range(T), (avg1-1.96*sd1/np.sqrt(repeat)), (avg1+1.96*sd1/np.sqrt(repeat)), color='royalblue', alpha=.2 )
 
-    plt.xlabel('Time step '+r'$t$',fontsize=24)
-    plt.ylabel('Cumulative Regret',fontsize=24)
-    plt.title(r'$1-p={}$'.format(round(1-p,2)),fontsize=30,pad=10)
+    plt.xlabel('Time step '+r'$t$',fontsize=25)
+    plt.ylabel(r'$R(t)$',fontsize=25)
+    plt.title(r'$1-p={}$'.format(round(1-p,2)),fontsize=25,pad=10)
     plt.legend(loc='best')
-    plt.savefig('./result/T'+str(T)+'d'+str(d)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'.png',dpi=600)
+    plt.savefig('./result/T'+str(T)+'d'+str(d)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'.png',dpi=300)
     plt.show()
     plt.clf()
 
@@ -400,7 +402,7 @@ def run_real(p,K,T,repeat,private,ind,boolean=True):
 #     ax.fill_between(range(T), (avg2-1.96*sd2/np.sqrt(repeat)), (avg2+1.96*sd2/np.sqrt(repeat)), color='b', alpha=.1 )
     
     plt.xlabel('Time step '+r'$t$',fontsize=20)
-    plt.ylabel('Cumulative Reward',fontsize=20)
+    plt.ylabel(r'$R(t)$',fontsize=20)
     plt.title(r' $1-p={}$'.format(round(1-p,2)),fontsize=20)
     plt.legend(loc='upper left')
     plt.savefig('./result/T'+str(T)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'private'+str(private)+'option'+option+'ind'+ind+'.png')
