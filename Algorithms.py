@@ -27,17 +27,17 @@ def numba_ix(arr, rows, cols):
 ######################################################################################
 
 @jit(nopython=True)
-def _CLBEF_get_UCB(x_hat, t, K, theta_hat, d, T, V_inv):
+def _CLBBF_get_UCB(x_hat, t, K, theta_hat, d, T, V_inv):
     return x_hat@theta_hat+\
             (np.sqrt((d+1)*np.log((t+2)*T))+\
              np.sqrt(d*np.log(K*T)))*np.sqrt(x_hat@V_inv@x_hat.T)
 
 @jit(nopython=True, parallel=True)
-def _CLBEF_UCB(x_hat, t, K, theta_hat, d, T, V_inv):
+def _CLBBF_UCB(x_hat, t, K, theta_hat, d, T, V_inv):
     
     ucb_list = np.zeros(K)
     for k in prange(K):
-        ucb_list[k] = _CLBEF_get_UCB(x_hat[k], t, K, theta_hat.copy(), d, T, V_inv.copy())
+        ucb_list[k] = _CLBBF_get_UCB(x_hat[k], t, K, theta_hat.copy(), d, T, V_inv.copy())
         
     chosen_arm = np.argmax(ucb_list)
     max_ucb = ucb_list[chosen_arm]
@@ -45,7 +45,7 @@ def _CLBEF_UCB(x_hat, t, K, theta_hat, d, T, V_inv):
     return chosen_arm, max_ucb
 
 @jit(nopython=True, cache=False)
-def _CLBEF_x_bar(nu, x_hat, Sigma, x, m):
+def _CLBBF_x_bar(nu, x_hat, Sigma, x, m):
     index_S=np.where(m!=0)[0]
     index_U=np.where(m==0)[0]
 
@@ -64,17 +64,17 @@ def _CLBEF_x_bar(nu, x_hat, Sigma, x, m):
     return x_hat
 
 @jit(nopython=True, parallel=True)
-def _CLBEF_x_hats(K_max, K, d, nu_hat, Sigma_hat, x_t, m_t):
+def _CLBBF_x_hats(K_max, K, d, nu_hat, Sigma_hat, x_t, m_t):
     
         x_hat=np.zeros((K_max,d+1))
         dummy = np.zeros((K_max,d))
         for k in prange(K):
-            x_hat[k] = np.append(1.0,_CLBEF_x_bar(nu_hat.copy(),dummy[k],Sigma_hat.copy(),x_t[k],m_t[k]))
+            x_hat[k] = np.append(1.0,_CLBBF_x_bar(nu_hat.copy(),dummy[k],Sigma_hat.copy(),x_t[k],m_t[k]))
         return x_hat
 
-class CLBEF:
+class CLBBF:
     def __init__(self,T,Env):
-        print('Algorithm: CLBEF')
+        print('Algorithm: CLBBF')
         self.Env = Env
         self.match_to_step = self.Env.match_to_step
         np.random.seed(self.Env.seed)
@@ -108,7 +108,6 @@ class CLBEF:
             bool_=True
             while bool_:
                 self.Env.load_data()
-                
                 x_t=self.Env.x.copy()
                 m_t=self.Env.m.copy()
                 K=self.Env.K
@@ -146,13 +145,10 @@ class CLBEF:
                     self.V_inv=np.linalg.pinv(self.V)
                     self.theta_hat=self.V_inv@self.xy.T
 
-                    chosen_arm, max_ucb = _CLBEF_UCB(self.x_hat, t, K, self.theta_hat, self.d, self.T, self.V_inv)
+                    chosen_arm, max_ucb = _CLBBF_UCB(self.x_hat, t, K, self.theta_hat, self.d, self.T, self.V_inv)
                             
-                if self.match_to_step and chosen_arm != self.Env.chosen_idx:
-                    bool_ = True
-                else:
-                    bool_ = False
-                    self.Env.write_used_idx()
+                bool_ = False
+                self.Env.write_used_idx()
                     
             if t==2**self.i:
                 self.i=self.i+1
@@ -171,14 +167,14 @@ class CLBEF:
                     
     def _x_bar(self, nu, Sigma, x, m):
         x_hat = np.zeros(self.d)
-        return _CLBEF_x_bar(nu, x_hat, Sigma, x, m)
+        return _CLBBF_x_bar(nu, x_hat, Sigma, x, m)
     
     def _get_estimators(self,K,x_t,m_t,K_sum_tmp,xi_tmp,n_tmp,Z_tmp):
         p_hat = max(1,n_tmp) / (self.d * K_sum_tmp)
         nu_hat = 1 / (K_sum_tmp * p_hat) * xi_tmp
         Sigma_hat = Z_tmp*(((p_hat-1)/(p_hat**2))*np.identity(self.d)+1/(p_hat**2))/(K_sum_tmp)-np.outer(nu_hat,nu_hat)
         
-        x_hat = _CLBEF_x_hats(self.Env.K_max, K, self.d, nu_hat, Sigma_hat, x_t, m_t)
+        x_hat = _CLBBF_x_hats(self.Env.K_max, K, self.d, nu_hat, Sigma_hat, x_t, m_t)
         
         return p_hat, nu_hat, Sigma_hat, x_hat
     
@@ -241,11 +237,9 @@ class OFUL:
                 else:               
                     chosen_arm, max_ucb = _OFUL_UCB(self.x_hat, t, K, self.theta_hat, self.d, self.T, self.V_inv)
                             
-                if self.match_to_step and chosen_arm != self.Env.chosen_idx:
-                    bool_ = True
-                else:
-                    bool_ = False
-                    self.Env.write_used_idx()
+
+                bool_ = False
+                self.Env.write_used_idx()
 
             self.r_Exp[t],self.r[t]=self.Env.observe(chosen_arm)
             self.V+=np.outer(self.x_hat[chosen_arm],self.x_hat[chosen_arm])
@@ -290,12 +284,9 @@ class RandomPolicy:
                 for k in range(K):
                     self.x_hat[k]=np.insert(x_t[k],0,1)
                 chosen_arm=np.random.choice(range(K))
-                
-                if self.match_to_step and chosen_arm != self.Env.chosen_idx:
-                    bool_ = True
-                else:
-                    bool_ = False
-                    self.Env.write_used_idx()
+
+                bool_ = False
+                self.Env.write_used_idx()
                     
             self.r_Exp[t],self.r[t]=self.Env.observe(chosen_arm)
             
