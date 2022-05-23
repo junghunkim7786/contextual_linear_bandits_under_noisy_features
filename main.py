@@ -21,33 +21,9 @@ if __name__=='__main__':
     d=3
     T=500  #Time horizon
     num=10
-    if opt=='1':
-        p=0.7
-        #K=5 # Yahoo
-        K = 10
-        #T=1000 # Yahoo
-        T= 100000
-        #private=True
-        #repeat=1
-        #run_real(p,K,T,repeat,private,run_bool)
-        private=False
-#         repeat=1
-        #run_real(p=0.9,K=10,T=20000,repeat=1,private=False,run_bool)
-        # Yahoo
-        #run_real(p=0.9,K=5,T=20000,repeat=1,private=True,boolean=run_bool)
-        #run_real(p=0.9,K=5,T=20000,repeat=1,private=False,boolean=run_bool)
-#         run_real(p=0.9,K=5,T=100000,repeat=1,private=False,boolean=run_bool)
-#         run_real(p=0.9,K=5,T=100000,repeat=1,private=True,boolean=run_bool)   
-
-
-        # run_real(p=0.7,K=5,T=100000,repeat=1,private=False,ind='03',boolean=run_bool)
-        # run_real(p=0.9,K=5,T=50000,repeat=1,private=False,ind='01',boolean=run_bool)
-
-        p=0.7
-        run_real(p=p,K=5,T=100000,repeat=1,private=False,ind='03',boolean=run_bool)
 
     
-    elif opt=='2':
+    if opt=='1':
         repeat=10
         d=3
         T=10000
@@ -57,7 +33,7 @@ if __name__=='__main__':
         p=0.99
         run1(p,d,K,T,repeat,run_bool)
         
-    elif opt=='3':
+    elif opt=='2':
         d=3
         repeat=10
         T=10000
@@ -66,3 +42,12 @@ if __name__=='__main__':
         run_p(p_list,d,K,T,repeat,run_bool)  
         K=2
         run_p(p_list,d,K,T,repeat,run_bool)  
+        
+    elif opt=='3':
+        d=3
+        K=10
+        T=10000
+        repeat=10
+        p_list=[1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1,0]
+        
+        run_sim(p_list,d,K,T,repeat,run_bool)
