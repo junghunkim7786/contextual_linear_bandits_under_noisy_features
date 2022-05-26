@@ -2,6 +2,7 @@ import subprocess, os, argparse, datetime
 import numpy as np
 import plotting
 
+print('preprocess')
 
 exec(open("./preprocess/taobao_preprocess.py").read())
 

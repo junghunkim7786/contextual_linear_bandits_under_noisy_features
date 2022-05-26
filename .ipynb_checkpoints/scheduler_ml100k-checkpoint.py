@@ -2,6 +2,9 @@ import subprocess, os, argparse, datetime
 import numpy as np
 import plotting
 
+print('preprocess')
+exec(open("./preprocess/ml100k_preprocess.py").read())
+
 seed_list = [12345, 23456, 34567, 45678, 56789, 67890, 78901, 89012, 90123, 1234]
 base_arg = ' --env ml100k --resultfoldertail _ctr '
 

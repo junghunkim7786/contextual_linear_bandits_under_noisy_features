@@ -2,6 +2,7 @@ import subprocess, os, argparse, datetime
 import numpy as np
 import plotting
 
+print('preprocess')
 exec(open("./preprocess/avazu_preprocess.py").read())
 
 seed_list = [12345, 23456, 34567, 45678, 56789, 67890, 78901, 89012, 90123, 1234]

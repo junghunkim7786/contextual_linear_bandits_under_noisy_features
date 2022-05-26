@@ -16,7 +16,6 @@ print(device)
 
 dataset_path = "./datasets/ml-100k"
 
-
 user = pd.read_csv(dataset_path+"/raw/u.user", header = None, sep = "|")
 user.columns = ["user_id","age","gender","occupation","zipcode"]
 user = user.drop(["zipcode"], axis = 1)
@@ -27,6 +26,7 @@ names = ['<20', '20-29', '30-39','40-49', '51-60', '60+']
 user['agegroup'] = pd.cut(user['age'], bins, labels=names)
 user = user.drop(["age"], axis = 1)
 user.head()
+
 
 columnsToEncode = ["agegroup","gender","occupation"]
 myEncoder = OneHotEncoder(sparse=False, handle_unknown='ignore')
@@ -87,6 +87,69 @@ reward1_idx = np.where(Y == 1)[0]
 
 len(reward0_idx) + len(reward1_idx)
 
-
 np.save(dataset_path+'/preprocess/X0{}'.format(data_tail),X[reward0_idx,:])
 np.save(dataset_path+'/preprocess/X1{}'.format(data_tail),X[reward1_idx,:])
+
+
+
+data_tail = '_zeroone'
+EMB_DIM = 32
+save_tail = '_zeroone32'
+
+learning_rate = 0.00005
+weight_decay  = 0.00001
+num_epoch = 4000 #Normally 100
+B = 10000 # batchsize
+
+    
+class BN_Autoencoder(nn.Module):
+    def __init__(self, d, emb_dim):
+        super().__init__()
+        self.emb_dim = emb_dim
+        self.d = d
+        self.encoder = nn.Sequential(nn.Linear(self.d, self.emb_dim),nn.BatchNorm1d(self.emb_dim))
+        self.decoder = nn.Linear(self.emb_dim, self.d)
+                
+    def forward(self, x):
+        batch_size = x.shape[0]
+        x = x.view(x.shape[0],-1)
+        encoded = self.encoder(x)
+        out = self.decoder(encoded).view(batch_size, self.d)
+        return out
+    
+    def encoding_result(self, x):
+        batch_size = x.shape[0]
+        x = x.view(x.shape[0],-1)
+        encoded = self.encoder(x)
+        return encoded
+
+X = np.vstack([np.load(dataset_path+'/preprocess/X0{}.npy'.format(data_tail)),np.load(dataset_path+'/preprocess/X1{}.npy'.format(data_tail))])
+np.random.shuffle(X)
+d = X.shape[1]
+
+model = BN_Autoencoder(d=d, emb_dim=EMB_DIM).to(device)
+loss_func = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+
+
+L = X.shape[0]
+
+loss_arr = []
+
+for k in tqdm.tqdm(range(num_epoch)):
+    
+    for l in range(L//B):
+        
+        batch  = X[l*B:(l+1)*B, :].copy()
+        
+        x = torch.from_numpy(batch).type(torch.FloatTensor).to(device)
+
+        optimizer.zero_grad()
+        output = model.forward(x)
+        loss = loss_func(output,x)
+        loss.backward()
+        optimizer.step()
+
+    loss_arr.append(loss.cpu().data.numpy())
+    
+torch.save(model.state_dict(), './models/ml100k_autoencoder{}.pt'.format(save_tail))
