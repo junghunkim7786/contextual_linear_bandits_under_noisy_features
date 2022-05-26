@@ -15,6 +15,17 @@ import matplotlib.pyplot as plt
 
 import multiprocessing as mp
 from multiprocessing import  Pool
+
+import random
+
+random_seed =12345 #5
+
+torch.manual_seed(random_seed)
+torch.cuda.manual_seed(random_seed)
+torch.cuda.manual_seed_all(random_seed) # if use multi-GPU
+np.random.seed(random_seed)
+random.seed(random_seed)
+
 num_cores = mp.cpu_count()
 print('# of Cores: {}'.format(num_cores))
 
@@ -28,7 +39,6 @@ CHUNKSIZE = 1000000
 # Read input and output path
 data_path = dataset_path + '/raw/train'
 
-#fields = ['click','C1','C15','C16','C18','site_category','app_category','device_type','device_conn_type']
 fields = ['click',  'C1', 'banner_pos', 'site_id', 'site_domain',
        'site_category', 'app_id', 'app_domain', 'app_category', 'device_model', 'device_type', 'device_conn_type', 'C14',
        'C15', 'C16', 'C17', 'C18', 'C19', 'C20', 'C21']
@@ -90,7 +100,7 @@ sample_ratio = 1/4.720285
 aggr_list = []
 for chunk in _df_chunks:
     
-    aggr_list.append(chunk.sample(frac=sample_ratio,random_state=12345))
+    aggr_list.append(chunk.sample(frac=sample_ratio,random_state=1234))  #2
     
 df_target = pd.concat(aggr_list).reset_index(drop=True)
 
@@ -106,6 +116,7 @@ for column in fields:
 features = np.concatenate(feature_list, axis=1)
 features = np.concatenate(feature_list, axis=1)
 features.shape
+# print(features.shape)
 reward = np.asarray(df_target['click'])
 reward.shape
 from sklearn.linear_model import LogisticRegression
@@ -122,8 +133,8 @@ prob_estimate_train = clf.predict_proba(X_train)
 train_auroc = roc_auc_score(Y_train, prob_estimate_train[:, 1])
 train_auprc = average_precision_score(Y_train, prob_estimate_train[:, 1])
 
-print("Train AUROC : {:.6f}".format(train_auroc))
-print("Train AUPRC : {:.6f}".format(train_auprc))
+# print("Train AUROC : {:.6f}".format(train_auroc))
+# print("Train AUPRC : {:.6f}".format(train_auprc))
 
 tail = '_mili'
 
@@ -139,10 +150,10 @@ np.save(dataset_path + '/preprocess/X1{}'.format(tail),features[reward1_idx,:])
 
 # Hyperparameters for Training
 
-learning_rate = 0.00005
-weight_decay  = 0.00001
-num_epoch = 300 #Normally 100
-B = 2500 # batchsize
+# learning_rate = 0.00005
+# weight_decay  = 0.00001
+# num_epoch = 300 #Normally 100
+# B = 2500 # batchsize
 
 #BN = True
 #EMB_DIM = 32
@@ -151,8 +162,13 @@ B = 2500 # batchsize
 # Hyperparameters for Training
 # learning_rate = 0.00001
 # weight_decay  = 0.000001
-#num_epoch = 800 #Normally 100
-#B = 10000 # batchsize
+# num_epoch = 800 #Normally 100
+# B = 10000 # batchsize
+
+learning_rate = 0.00005
+weight_decay  = 0.00001
+num_epoch = 800 #Normally 100
+B = 50000 # batchsize
 
 EMB_DIM = 32
 

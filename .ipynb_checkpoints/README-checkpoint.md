@@ -26,23 +26,23 @@ You can download dataset here:
 
 URls:
 
-* Avazu: https://www.kaggle.com/competitions/avazu-ctr-prediction/data 
-
 * Taobao: https://www.kaggle.com/datasets/pavansanagapati/ad-displayclick-data-on-taobaocom
 
 * MovieLens: https://grouplens.org/datasets/movielens/100k/
+
+* Avazu: https://www.kaggle.com/competitions/avazu-ctr-prediction/data 
 
 After download, Unzip in ./datasets/{env}/raw/
 
 For figure 2, run: 
 
 ```
-python3 scheduler_avazu.py
-```
-```
 python3 scheduler_taobao.py
 ```
 ```
 python3 scheduler_ml100k.py
+```
+```
+python3 scheduler_avazu.py
 ```
 For results, check the 'result_ctr' folder
