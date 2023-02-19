@@ -36,7 +36,7 @@ parser.add_argument("--model_tail", type=str)
 parser.add_argument("--encoding", type=str2bool)
 
 parser.add_argument("--mask_ratio", "--np", type=float, help='1-p ; mask probabilty')
-parser.add_argument("--K_max", type=int)
+parser.add_argument("--K", type=int)
 parser.add_argument("--reward1_ratio", type=float, help='The ratio of reward 1 arms from the sampling')
 parser.add_argument("--num_partial", type=int, help='Whole dataset is sampled from the loaded data, with given num')
 
@@ -49,8 +49,8 @@ if __name__ == "__main__":
     
     resultfoldertail = new_args.resultfoldertail
     
-    os.makedirs(f'./result{resultfoldertail}/arrays', exist_ok=True)
-    os.makedirs(f'./result{resultfoldertail}/configs', exist_ok=True) 
+    os.makedirs(f'./real_outputs/result{resultfoldertail}/arrays', exist_ok=True)
+    os.makedirs(f'./real_outputs/result{resultfoldertail}/configs', exist_ok=True) 
     # os.makedirs(f'./result{resultfoldertail}/figures', exist_ok=True) 
     
     with open('./jsons/{}.json'.format(new_args.env)) as json_file:
@@ -65,10 +65,10 @@ if __name__ == "__main__":
     ENV = ENV_CLASS[args.env](args)
     
     ENV.reset()
-    CLBEF = algorithms.CLBEF(args.T, ENV)
-    CLBEF_rewards     = CLBEF.rewards()
-    CLBEF_cumrewards  = np.cumsum(CLBEF_rewards)
-    CLBEF_ctr         = CLBEF_cumrewards / (np.arange(args.T)+1)
+    CLBBF = algorithms.CLBBF(args.T, ENV)
+    CLBBF_rewards     = CLBBF.rewards()
+    CLBBF_cumrewards  = np.cumsum(CLBBF_rewards)
+    CLBBF_ctr         = CLBBF_cumrewards / (np.arange(args.T)+1)
     
     ENV.reset()
     OFUL = algorithms.OFUL(args.T, ENV)
@@ -94,7 +94,7 @@ if __name__ == "__main__":
 #     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 #     ax.plot(range(args.T - 100),RANDOM_ctr[100:],color='darkorange',label='RAMDOM',marker='o', markersize=8,markevery=T_p)
 #     ax.plot(range(args.T - 100),OFUL_ctr[100:],color='crimson',label='OFUL',marker='s', markersize=8,markevery=T_p)
-#     ax.plot(range(args.T - 100),CLBEF_ctr[100:],color='indigo',label='Algorithm1',marker='^', markersize=8,markevery=T_p)
+#     ax.plot(range(args.T - 100),CLBBF_ctr[100:],color='indigo',label='Algorithm1',marker='^', markersize=8,markevery=T_p)
 
 #     plt.xlabel('Time Step',fontsize=12)
 #     plt.ylabel('CTR',fontsize=12)
@@ -105,10 +105,10 @@ if __name__ == "__main__":
 #     plt.savefig(f'./result{resultfoldertail}/figures/{args.env}_{timenum}')
     ##### --             -- #####
     
-    np.savez(f'./result{resultfoldertail}/arrays/{args.env}_{timenum}_reward',clbef=CLBEF_rewards, oful=OFUL_rewards,random=RANDOM_rewards)
+    np.savez(f'./real_outputs/result{resultfoldertail}/arrays/{args.env}_{timenum}_reward', clbbf=CLBBF_rewards, oful=OFUL_rewards,random=RANDOM_rewards)
     
-    with open(f'./result{resultfoldertail}/configs/{args.env}_{timenum}.pickle', 'wb') as handle:
+    with open(f'./real_outputs/result{resultfoldertail}/configs/{args.env}_{timenum}.pickle', 'wb') as handle:
         pickle.dump(args.__dict__, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
-    with open(f"./result{resultfoldertail}/{args.env}_result_guide","a+") as f:
+    with open(f"./real_outputs/result{resultfoldertail}/{args.env}_result_guide","a+") as f:
         f.write('{}: {}'.format(timenum, arg_str))

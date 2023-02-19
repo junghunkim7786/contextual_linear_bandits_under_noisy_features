@@ -1,15 +1,35 @@
-import numpy as np
+import sys, os, time, datetime,pickle
+from tqdm import tqdm
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import OneHotEncoder
-
-import pickle
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.init as init
-import tqdm
 import matplotlib.pyplot as plt
+import multiprocessing as mp
+from multiprocessing import  Pool
+import random
+
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-seed", nargs='?', type=int, default = 0)
+args = parser.parse_args()
+
+random_seed = args.seed
+
+print('Random Seed: ',random_seed)
+
+torch.manual_seed(random_seed)
+torch.cuda.manual_seed(random_seed)
+torch.cuda.manual_seed_all(random_seed) # if use multi-GPU
+np.random.seed(random_seed)
+random.seed(random_seed)
+
+num_cores = mp.cpu_count()
+print('# of Cores: {}'.format(num_cores))
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
@@ -90,16 +110,18 @@ len(reward0_idx) + len(reward1_idx)
 np.save(dataset_path+'/preprocess/X0{}'.format(data_tail),X[reward0_idx,:])
 np.save(dataset_path+'/preprocess/X1{}'.format(data_tail),X[reward1_idx,:])
 
+# Hyperparameters for Training AutoEncoder
 
 
 data_tail = '_zeroone'
-EMB_DIM = 32
 save_tail = '_zeroone32'
 
-learning_rate = 0.00005
-weight_decay  = 0.00001
-num_epoch = 4000 #Normally 100
+# Hyperparameters for Training
+learning_rate = 0.00001
+weight_decay  = 0.000001
+num_epoch = 500 #Normally 100
 B = 10000 # batchsize
+EMB_DIM = 32
 
     
 class BN_Autoencoder(nn.Module):
@@ -136,7 +158,7 @@ L = X.shape[0]
 
 loss_arr = []
 
-for k in tqdm.tqdm(range(num_epoch)):
+for k in tqdm(range(num_epoch)):
     
     for l in range(L//B):
         

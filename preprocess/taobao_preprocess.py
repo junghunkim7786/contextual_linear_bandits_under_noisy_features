@@ -1,31 +1,45 @@
-import numpy as np
+import sys, os, time, datetime,pickle
+from tqdm import tqdm
 import pandas as pd
-import math
+import numpy as np
 from sklearn.preprocessing import OneHotEncoder
-
-import pickle
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.init as init
-import tqdm
 import matplotlib.pyplot as plt
+import multiprocessing as mp
+from multiprocessing import  Pool
+import random
+import math
 
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-seed", nargs='?', type=int, default = 0)
+args = parser.parse_args()
+
+random_seed = args.seed
+
+print('Random Seed: ',random_seed)
+
+torch.manual_seed(random_seed)
+torch.cuda.manual_seed(random_seed)
+torch.cuda.manual_seed_all(random_seed) # if use multi-GPU
+np.random.seed(random_seed)
+random.seed(random_seed)
+
+num_cores = mp.cpu_count()
+print('# of Cores: {}'.format(num_cores))
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
 dataset_path = "./datasets/taobao"
 
+
 raw_sample = pd.read_csv(dataset_path + "/raw/raw_sample.csv", sep = ",",encoding ="ISO-8859-1").drop(['time_stamp', 'pid', 'nonclk'], axis=1).dropna()
-
 raw_sample.adgroup_id = raw_sample.adgroup_id.astype(int)
-
-print(raw_sample.shape)
-#print((raw_sample.nonclk.astype(bool).apply(lambda x: not x).values == raw_sample.clk.astype(bool).values).all())
-#np.sum(raw_sample['clk'].values)
 raw_sample.head()
 
 user = pd.read_csv(dataset_path + "/raw/user_profile.csv", sep = ",",encoding ="ISO-8859-1").dropna()
@@ -109,17 +123,18 @@ len(reward0_idx), len(reward1_idx)
 np.save(dataset_path+'/preprocess/X0{}'.format(data_tail),X[reward0_idx,:])
 np.save(dataset_path+'/preprocess/X1{}'.format(data_tail),X[reward1_idx,:])
 
-
-
 data_tail = '_taobao'
 EMB_DIM = 32
 save_tail = '_taobao32'
 
+# Hyperparameters for Training AutoEncoder
+
 # Hyperparameters for Training
-learning_rate = 0.00005
-weight_decay  = 0.00001
-num_epoch = 4000 #Normally 100
+learning_rate = 0.00001
+weight_decay  = 0.000001
+num_epoch = 500 #Normally 100
 B = 10000 # batchsize
+EMB_DIM = 32
 
 class BN_Autoencoder(nn.Module):
     def __init__(self, d, emb_dim):
@@ -156,7 +171,7 @@ L = X.shape[0]
 
 loss_arr = []
 
-for k in tqdm.tqdm(range(num_epoch)):
+for k in tqdm(range(num_epoch)):
     
     for l in range(L//B):
         

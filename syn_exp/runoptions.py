@@ -38,7 +38,7 @@ def run_p(p_list,d,K,T,repeat,boolean=True):
                 print('repeat: ',j)
                 seed=j
                 Env=noisy_linear_Env(seed,p,d,K)
-                algorithm1=algorithms.CLBEF(T, Env)
+                algorithm1=algorithms.CLBBF(T, Env)
                 
                 Env=noisy_linear_Env(seed,p,d,K)
                 algorithm2=algorithms.OFUL(T,Env)
@@ -62,11 +62,11 @@ def run_p(p_list,d,K,T,repeat,boolean=True):
             sd2=np.std(regret_sum_list2,axis=0)
 
 
-            # algorithm_list = ['CLBEF','OFUL']
+            # algorithm_list = ['CLBBF','OFUL']
             regret = dict()
             std=dict()
-            regret['CLBEF']=avg1
-            std['CLBEF']=sd1
+            regret['CLBBF']=avg1
+            std['CLBBF']=sd1
             regret['OFUL']=avg2
             std['OFUL']=sd2
 
@@ -114,8 +114,8 @@ def run_p(p_list,d,K,T,repeat,boolean=True):
                     break
             pickle_file2.close()
             std=objects[0]
-            avg1=regret['CLBEF']
-            sd1=std['CLBEF']
+            avg1=regret['CLBBF']
+            sd1=std['CLBBF']
             avg2=regret['OFUL']
             sd2=std['OFUL']   
             
@@ -150,7 +150,7 @@ def run_p(p_list,d,K,T,repeat,boolean=True):
     plt.title(r'$K={}$'.format(K),fontsize=25,pad=10)
     plt.xlabel(r'Missing probability $1-p$',fontsize=25)
     plt.ylabel(r'$R(T)$',fontsize=25)
-    plt.savefig('./syn_result/T'+str(T)+'K'+str(K)+'repeat'+str(repeat)+'p_list'+'.png',dpi=300)
+    plt.savefig('./syn_result/T'+str(T)+'K'+str(K)+'repeat'+str(repeat)+'p_list'+'.png',bbox_inches = "tight")
     plt.show()
     plt.clf()        
     
@@ -172,7 +172,7 @@ def run1(p,d,K,T,repeat,boolean=True):
             print('repeat: ',i)
             seed=i
             Env=noisy_linear_Env(seed,p,d,K)
-            algorithm1=algorithms.CLBEF(T,Env)
+            algorithm1=algorithms.CLBBF(T,Env)
             
             Env=noisy_linear_Env(seed,p,d,K)
             algorithm2=algorithms.OFUL(T,Env)
@@ -195,11 +195,11 @@ def run1(p,d,K,T,repeat,boolean=True):
         avg2=avg_regret_sum2/repeat
         sd2=np.std(regret_sum_list2,axis=0)
         
-        # algorithm_list = ['CLBEF','OFUL']
+        # algorithm_list = ['CLBBF','OFUL']
         regret = dict()
         std=dict()
-        regret['CLBEF']=avg1
-        std['CLBEF']=sd1
+        regret['CLBBF']=avg1
+        std['CLBBF']=sd1
         regret['OFUL']=avg2
         std['OFUL']=sd2
         ##Save data
@@ -235,8 +235,8 @@ def run1(p,d,K,T,repeat,boolean=True):
                 break
         pickle_file2.close()
         std=objects[0]
-        avg1=regret['CLBEF']
-        sd1=std['CLBEF']
+        avg1=regret['CLBBF']
+        sd1=std['CLBBF']
         avg2=regret['OFUL']
         sd2=std['OFUL']      
 ###Plot    
@@ -263,6 +263,6 @@ def run1(p,d,K,T,repeat,boolean=True):
     plt.ylabel(r'$R(t)$',fontsize=25)
     plt.title(r'$1-p={}$'.format(round(1-p,2)),fontsize=25,pad=10)
     plt.legend(loc='best')
-    plt.savefig('./syn_result/T'+str(T)+'d'+str(d)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'.png',dpi=300)
+    plt.savefig('./syn_result/T'+str(T)+'d'+str(d)+'K'+str(K)+'p'+str(p)+'repeat'+str(repeat)+'.png', bbox_inches = "tight")
     plt.show()
     plt.clf()

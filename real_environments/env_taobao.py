@@ -39,51 +39,6 @@ def Load_Taobao(model_tail, data_tail, encoding, num_partial):
         
     return None, X0, X1, raw_dim
 
-class taobao_Env:
+class taobao_Env(base_Env):
     def __init__(self, args):
-        self.seed = args.seed
-        np.random.seed(self.seed)
-        self.env = args.env
-        self.args = args
-        
-        self.autoencoder, self.X0, self.X1, self.d \
-        = Load_Taobao(model_tail=args.model_tail, data_tail=args.data_tail, \
-                     encoding=args.encoding, num_partial=args.num_partial)
-
-        self.p = 1.0 - args.mask_ratio
-        
-        self.K, self.K_max = args.K_max, args.K_max
-        self.arms = None
-        self.reward1_ratio = args.reward1_ratio
-        
-        self.N0, self.N1 = self.X0.shape[0], self.X1.shape[0]
-        self.n1 = int(math.ceil(self.K * self.reward1_ratio))
-        self.n0 = int(self.K - self.n1)        
-        
-    def load_data(self):
-        
-        reward0_idxs = np.random.choice(np.arange(self.N0),self.n0,replace=False)
-        reward1_idxs = np.random.choice(np.arange(self.N1),self.n1,replace=False)
-        
-        self.x = np.vstack([self.X0[reward0_idxs].copy(),self.X1[reward1_idxs].copy()])
-        self.arms = np.arange(self.K)
-        
-        if not (self.autoencoder is None):
-            self.x = encoding(self.autoencoder, self.x)
-        self.x, self.m = noising(self.p, len(self.arms), self.x)
-                
-    def write_used_idx(self):
-        pass
-        
-    def observe(self, k):
-        
-        if self.arms[k] >= self.n0:
-            exp_reward = 1
-        else:
-            exp_reward = 0
-        reward = exp_reward
-        
-        return exp_reward,reward
-    
-    def reset(self):
-        np.random.seed(self.seed)
+        super().__init__(args,Load_Taobao)
