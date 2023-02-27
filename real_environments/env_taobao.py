@@ -10,12 +10,10 @@ import torch.nn as nn
 
 from .utils import *
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-def Load_Taobao(model_tail, encoding, num_partial):
+def Load_Taobao(model_tail, num_partial, device):
     
-    X0 = np.load('./datasets/taobao/preprocess/X0_taobao.npy')
-    X1 = np.load('./datasets/taobao/preprocess/X1_taobao.npy')
+    X0 = np.load('./real_datasets/taobao/preprocess/X0_taobao.npy')
+    X1 = np.load('./real_datasets/taobao/preprocess/X1_taobao.npy')
     
     if num_partial > 0 :
         X0_len = X0.shape[0] 
@@ -27,17 +25,14 @@ def Load_Taobao(model_tail, encoding, num_partial):
     
     raw_dim = X0.shape[1]
 
-    if encoding:
-        state_dict = torch.load('./models/AE_taobao_{}.pt'.format(model_tail))
-        emb_dim = state_dict['decoder.weight'].shape[1]
-        
-        autoencoder = Autoencoder_BN(raw_dim=raw_dim, emb_dim=emb_dim).to(device)
-        
-        autoencoder.load_state_dict(state_dict)
-        autoencoder.eval()
-        return autoencoder, X0, X1, emb_dim
-        
-    return None, X0, X1, raw_dim
+    state_dict = torch.load('./real_models/AE_taobao_{}.pt'.format(model_tail))
+    emb_dim = state_dict['decoder.weight'].shape[1]
+    
+    autoencoder = Autoencoder_BN(raw_dim=raw_dim, emb_dim=emb_dim).to(device)
+    
+    autoencoder.load_state_dict(state_dict)
+    autoencoder.eval()
+    return autoencoder, X0, X1, emb_dim
 
 class taobao_Env(base_Env):
     def __init__(self, args):

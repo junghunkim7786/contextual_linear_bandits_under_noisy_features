@@ -16,7 +16,7 @@ import math
 num_cores = mp.cpu_count()
 print('# of Cores: {}'.format(num_cores))
 
-dataset_path = "./datasets/taobao"
+dataset_path = "./real_datasets/taobao"
 
 raw_sample = pd.read_csv(dataset_path + "/raw/raw_sample.csv", sep = ",",encoding ="ISO-8859-1").drop(['time_stamp', 'pid', 'nonclk'], axis=1).dropna()
 raw_sample.adgroup_id = raw_sample.adgroup_id.astype(int)
@@ -84,6 +84,5 @@ Y = data_array[:,2]
 reward0_idx = np.where(Y == 0)[0]
 reward1_idx = np.where(Y == 1)[0]
 
-data_tail = '_taobao'
-np.save(dataset_path+'/preprocess/X0{}'.format(data_tail),X[reward0_idx,:])
-np.save(dataset_path+'/preprocess/X1{}'.format(data_tail),X[reward1_idx,:])
+np.save(dataset_path+'/preprocess/X0_taobao',X[reward0_idx,:])
+np.save(dataset_path+'/preprocess/X1_taobao',X[reward1_idx,:])

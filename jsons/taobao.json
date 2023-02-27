@@ -1,9 +1,7 @@
 {
-	"device":"cuda:0",
-
 	"env": "taobao",
-
-	"encoding": true,
+	
+	"device":"cuda:0",
 
 	"mask_ratio": 0.1,
 	"K_max": 20,

@@ -9,7 +9,7 @@ import random
 import utils
 import argparse
 
-dataset_path = './datasets/taobao'
+dataset_path = './real_datasets/taobao'
 
 if __name__ == "__main__":
 
@@ -23,5 +23,5 @@ if __name__ == "__main__":
 
     model = utils.AE_train(X, seed=seed)
 
-    torch.save(model.state_dict(), f'./models/AE_taobao_s{seed}.pt')
+    torch.save(model.state_dict(), f'./real_models/AE_taobao_s{seed}.pt')
 
