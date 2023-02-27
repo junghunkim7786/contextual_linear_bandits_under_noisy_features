@@ -32,7 +32,7 @@ URls:
 
 * Avazu: https://www.kaggle.com/competitions/avazu-ctr-prediction/data 
 
-After download, Place zip files in ./real_datasets/ .
+After download, place three zip files in ./real_datasets/ .
 
 Then run "real_datasetter.py" in the home directory.
 
