@@ -28,12 +28,12 @@ user['agegroup'] = pd.cut(user['age'], bins, labels=names)
 user = user.drop(["age"], axis = 1)
 
 columnsToEncode = ["agegroup","gender","occupation"]
-myEncoder = OneHotEncoder(sparse=False, handle_unknown='ignore')
+myEncoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
 myEncoder.fit(user[columnsToEncode])
 
 user_features = pd.concat([user.drop(columnsToEncode, 1),
                            pd.DataFrame(myEncoder.transform(user[columnsToEncode]), 
-                                        columns = myEncoder.get_feature_names(columnsToEncode))], axis=1).reindex()
+                                        columns = myEncoder.get_feature_names_out(columnsToEncode))], axis=1).reindex()
 user_features_array = user_features.to_numpy()
 
 user_id_to_feature = dict(zip(user_features_array[:,0], user_features_array[:,1:]))

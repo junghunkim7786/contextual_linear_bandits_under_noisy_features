@@ -76,7 +76,7 @@ for i,chunk in enumerate(_df_chunks):
     
 _df_chunks = []
 for i in range(41):
-     _df_chunks.append(pd.read_csv('./real_datasets/avazu_preprocess/avazu_chunks/chunk_{:2d}'.format(i), usecols=fields))
+     _df_chunks.append(pd.read_csv('./real_datasets/avazu/preprocess/avazu_chunks/chunk_{:2d}'.format(i), usecols=fields))
     
 df_target = pd.concat(_df_chunks).reset_index(drop=True)
 
@@ -93,5 +93,5 @@ reward = np.asarray(df_target['click'])
 reward0_idx = np.where(reward == 0)[0]
 reward1_idx = np.where(reward == 1)[0]
 
-np.save(dataset_path+'/preprocess/X0_avazu',X[reward0_idx,:])
-np.save(dataset_path+'/preprocess/X1_avazu',X[reward1_idx,:])
+np.save(dataset_path+'/preprocess/X0_avazu',features[reward0_idx,:])
+np.save(dataset_path+'/preprocess/X1_avazu',features[reward1_idx,:])
