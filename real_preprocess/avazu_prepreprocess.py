@@ -91,11 +91,11 @@ for column in  fields:
         
 for i,chunk in enumerate(_df_chunks):
     
-    chunk.to_csv('./preprocess/avazu_chunks/chunk_{:2d}'.format(i))
+    chunk.to_csv('./real_datasets/avazu/preprocess/avazu_chunks/chunk_{:2d}'.format(i))
     
 _df_chunks = []
 for i in range(41):
-     _df_chunks.append(pd.read_csv('./preprocess/avazu_chunks/chunk_{:2d}'.format(i), usecols=fields))
+     _df_chunks.append(pd.read_csv('./real_datasets/avazu_preprocess/avazu_chunks/chunk_{:2d}'.format(i), usecols=fields))
     
 df_target = pd.concat(_df_chunks).reset_index(drop=True)
 
