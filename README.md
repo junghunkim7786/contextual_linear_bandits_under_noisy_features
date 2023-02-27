@@ -45,6 +45,6 @@ python3 scheduler_taobao.py
 python3 scheduler_ml100k.py
 ```
 ```
-python3 scheduler_avazu.py --
+python3 scheduler_avazu.py
 ```
 For results, check the 'result_ctr' folder.
