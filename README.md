@@ -34,7 +34,11 @@ URls:
 
 After download, place three zip files in ./real_datasets/ .
 
-Then run "python3 real_datasetter.py" in the home directory.
+Then run:
+```
+python3 real_datasetter.py
+```
+at the home directory.
 
 For figure 2, run: 
 
