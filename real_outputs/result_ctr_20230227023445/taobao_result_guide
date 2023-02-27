@@ -1,1 +1,0 @@
-1677465341421: device: cuda:0 | env: taobao | encoding: True | mask_ratio: 0.1 | K_max: 20 | reward1_ratio: 0.01 | num_partial: 1000 | T: 100000 | resultfoldertail: _ctr_20230227023445 | seed: 12345 | model_tail: s12345 | 

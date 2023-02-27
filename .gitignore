@@ -1,5 +1,5 @@
-./real_models/*
-./real_outputs/*
+real_models/
+real_outputs/
 **/*.ipynb_checkpoints/
 .ipynb_checkpoints
 __pycache__
