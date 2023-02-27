@@ -11,7 +11,7 @@ import utils
 import os
 
 ENV_CLASS = {
-    'ml100k':     real_environments.env_ml100k.movielens_Env,
+    'ml100k':     real_environments.env_ml100k.ml100k_Env,
     'avazu':      real_environments.env_avazu.avazu_Env,
     'taobao':     real_environments.env_taobao.taobao_Env
 }
