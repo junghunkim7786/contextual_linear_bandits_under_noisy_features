@@ -36,7 +36,7 @@ print(device)
 
 dataset_path = "./datasets/ml-100k"
 
-user = pd.read_csv(dataset_path+"/raw/u.user", header = None, sep = "|")
+user = pd.read_csv(dataset_path+"/raw/ml-100k/u.user", header = None, sep = "|")
 user.columns = ["user_id","age","gender","occupation","zipcode"]
 user = user.drop(["zipcode"], axis = 1)
 
@@ -64,7 +64,7 @@ user_id_to_feature = dict(zip(user_features_array[:,0], user_features_array[:,1:
 
 user_features_array.shape
 
-movie = pd.read_csv(dataset_path+"/raw/u.item", header = None, sep = "|", encoding='latin-1')
+movie = pd.read_csv(dataset_path+"/raw/ml-100k/u.item", header = None, sep = "|", encoding='latin-1')
 movie.columns = ["movie_id", "movie_title", "release_date", "video_release_date", "IMDb_URL", 
                   "unknown", "Action", "Adventure","Animation","Children's","Comedy","Crime","Documentary","Drama","Fantasy",
                   "Film-Noir","Horror", "Musical", "Mystery","Romance","Sci-Fi","Thriller", "War","Western"]
@@ -77,7 +77,7 @@ movie_id_to_feature = dict(zip(movie_features_array[:,0], movie_features_array[:
 
 movie_features_array.shape
 
-data = pd.read_csv(dataset_path+"/raw/u.data", sep ="\t", header=None, names = ["user_id", "movie_id","rating", "timestamp"])
+data = pd.read_csv(dataset_path+"/raw/ml-100k/u.data", sep ="\t", header=None, names = ["user_id", "movie_id","rating", "timestamp"])
 data = data.drop(["timestamp"], axis = 1)
 
 data["reward"] = np.where(data["rating"] <5,0,1)
@@ -100,7 +100,7 @@ for i in range(data_array.shape[0]):
 X = np.vstack(X)
 X.shape, Y.shape
 
-data_tail = '_zeroone'
+data_tail = '_ml100k_{}'.format(random_seed)
 
 reward0_idx = np.where(Y == 0)[0]
 reward1_idx = np.where(Y == 1)[0]
@@ -111,10 +111,7 @@ np.save(dataset_path+'/preprocess/X0{}'.format(data_tail),X[reward0_idx,:])
 np.save(dataset_path+'/preprocess/X1{}'.format(data_tail),X[reward1_idx,:])
 
 # Hyperparameters for Training AutoEncoder
-
-
-data_tail = '_zeroone'
-save_tail = '_zeroone32'
+save_tail = data_tail
 
 # Hyperparameters for Training
 learning_rate = 0.00001
@@ -174,4 +171,4 @@ for k in tqdm(range(num_epoch)):
 
     loss_arr.append(loss.cpu().data.numpy())
     
-torch.save(model.state_dict(), './models/ml100k_autoencoder{}.pt'.format(save_tail))
+torch.save(model.state_dict(), './models/AE{}.pt'.format(save_tail))

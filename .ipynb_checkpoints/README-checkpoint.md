@@ -32,7 +32,7 @@ URls:
 
 * Avazu: https://www.kaggle.com/competitions/avazu-ctr-prediction/data 
 
-After download, Unzip in ./datasets/{env}/raw/
+After download, Unzip in ./datasets/{env}/raw/. (For Avazu dataset, please also run "gzip -d train.gz")
 
 For figure 2, run: 
 

@@ -32,7 +32,8 @@ URls:
 
 * Avazu: https://www.kaggle.com/competitions/avazu-ctr-prediction/data 
 
-After download, Unzip in ./datasets/{env}/raw/
+After download, Unzip in ./datasets/{env}/raw/. (For Avazu dataset, please also un-gzip train.gz.)
+You can also run "datasetter.py" after downloading 3 zip files.
 
 For figure 2, run: 
 
@@ -43,6 +44,6 @@ python3 scheduler_taobao.py
 python3 scheduler_ml100k.py
 ```
 ```
-python3 scheduler_avazu.py
+python3 scheduler_avazu.py --
 ```
 For results, check the 'result_ctr' folder

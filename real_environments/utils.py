@@ -4,6 +4,7 @@ from numba import jit
 
 import torch
 import torch.nn as nn
+from icecream import ic
 
 __all__ = ["encoding", "noising", "Autoencoder_BN", "base_Env"]
 
@@ -55,7 +56,7 @@ class base_Env:
         self.args = args
         
         self.autoencoder, self.X0, self.X1, self.d \
-        = load_ftn(model_tail=args.model_tail, data_tail=args.data_tail, \
+        = load_ftn(model_tail=args.model_tail, \
                      encoding=args.encoding, num_partial=args.num_partial)
 
         self.p = 1.0 - args.mask_ratio
@@ -71,6 +72,7 @@ class base_Env:
         self.pre_encoding = True
         
         if self.pre_encoding:
+
             B = 10000
             X0_stack = []
             for Bidx in range(self.N0 // B + 1):
@@ -81,7 +83,8 @@ class base_Env:
 
             self.X0 = np.vstack(X0_stack)
             self.X1 = np.vstack(X1_stack)
-            self.X = np.random.shuffle(np.vstack([self.X0,self.X1]))
+            self.X = np.vstack([self.X0,self.X1])
+            np.random.shuffle(self.X)
         
     def load_data(self):
         

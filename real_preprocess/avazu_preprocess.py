@@ -47,8 +47,8 @@ B = 10000 # batchsize
 EMB_DIM = 32
 
 # Additional char tail for save/load
-load_tail = '_mili_{}'.format(random_seed)
-save_tail = '_mili32_{}'.format(random_seed)
+load_tail = '_avazu_{}'.format(random_seed)
+save_tail = load_tail
 
 class BN_Autoencoder(nn.Module):
     def __init__(self, d, emb_dim):
@@ -102,4 +102,4 @@ for k in tqdm(range(num_epoch)):
 
     loss_arr.append(loss.cpu().data.numpy())
     
-torch.save(model.state_dict(), './models/avazu_autoencoder{}.pt'.format(save_tail))
+torch.save(model.state_dict(), './models/AE{}.pt'.format(save_tail))

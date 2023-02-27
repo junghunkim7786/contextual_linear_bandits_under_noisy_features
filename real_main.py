@@ -2,12 +2,12 @@ import numpy as np
 import argparse, json, pickle, math
 import matplotlib.pyplot as plt
 import time
+import torch
 
 import real_environments
 import algorithms
 
 import os
-
 ENV_LIST = ['ml100k', 'avazu', 'taobao']
 
 ENV_CLASS = {
@@ -30,15 +30,13 @@ parser = argparse.ArgumentParser(description="Process Configs", argument_default
 parser.add_argument("--env", choices=ENV_LIST, type=str)
 parser.add_argument("--seed", type=int)
 
-parser.add_argument("--data_tail", type=str)
-parser.add_argument("--model_tail", type=str)
-
 parser.add_argument("--encoding", type=str2bool)
 
 parser.add_argument("--mask_ratio", "--np", type=float, help='1-p ; mask probabilty')
 parser.add_argument("--K", type=int)
 parser.add_argument("--reward1_ratio", type=float, help='The ratio of reward 1 arms from the sampling')
 parser.add_argument("--num_partial", type=int, help='Whole dataset is sampled from the loaded data, with given num')
+parser.add_argument("--model_tail", type=str, help="Indicating the model tail, e.g. '_avazu_12345")
 
 parser.add_argument("--resultfoldertail",type=str, default='')
 
@@ -46,7 +44,10 @@ parser.add_argument("--T", type=int)
 new_args = parser.parse_args()
 
 if __name__ == "__main__":
-    
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(device)
+
     resultfoldertail = new_args.resultfoldertail
     
     os.makedirs(f'./real_outputs/result{resultfoldertail}/arrays', exist_ok=True)

@@ -1,15 +1,11 @@
 {
-	"seed":12345,
 	"device":"cuda:0",
 
 	"env": "taobao",
 
-	"data_tail": "_taobao",
-	"model_tail":"_taobao32",
 	"encoding": true,
 
 	"mask_ratio": 0.1,
-
 	"K_max": 20,
 	"reward1_ratio":0.01,
 	"num_partial":1000,

@@ -23,7 +23,7 @@ for seed in seed_list:
     preseed=seed
     os.system("python3 ./preprocess/avazu_preprocess.py -seed {}".format(preseed))
 
-    base_arg = ' --T 100000 --env avazu --resultfoldertail _ctr_{} --data_tail _mili_{} --model_tail _mili32_{} '.format(now, preseed, preseed)
+    base_arg = ' --T 100000 --env avazu --resultfoldertail _ctr_{} --data_tail _avazu_{} --model_tail _avazu_{} '.format(now, preseed, preseed)
     condition_arg = '--seed {}'.format(seed)
     os.system('python3 ./real_main.py'+ base_arg + condition_arg)
 

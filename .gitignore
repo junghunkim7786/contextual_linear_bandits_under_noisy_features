@@ -1,1 +1,4 @@
-
+./real_models
+./real_outputs
+**/*.ipynb_checkpoints/
+*.pyc

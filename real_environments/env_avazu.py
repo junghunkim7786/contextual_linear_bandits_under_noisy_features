@@ -28,7 +28,7 @@ def Load_Avazu(model_tail, data_tail, encoding, num_partial):
     raw_dim = X0.shape[1]
     
     if encoding:
-        state_dict = torch.load('./models/avazu_autoencoder{}.pt'.format(model_tail))
+        state_dict = torch.load('./models/AE{}.pt'.format(model_tail))
         emb_dim = state_dict['decoder.weight'].shape[1]
         
         autoencoder = Autoencoder_BN(raw_dim=raw_dim, emb_dim=emb_dim).to(device)
