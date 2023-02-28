@@ -62,8 +62,7 @@ class base_Env:
 
         self.X0 = np.vstack(X0_stack)
         self.X1 = np.vstack(X1_stack)
-        self.X = np.vstack([self.X0,self.X1])
-        np.random.shuffle(self.X)
+
 
     def encoding(self, x):
         with torch.no_grad():
@@ -77,12 +76,12 @@ class base_Env:
         reward0_idxs = np.random.choice(np.arange(self.N0),self.n0,replace=False)
         reward1_idxs = np.random.choice(np.arange(self.N1),self.n1,replace=False)
         
-        idxs = np.random.choice(np.arange(self.N0+self.N1),self.K,replace=False)
-        self.x = self.X[idxs].copy()
-        
-        #self.x = np.vstack([self.X0[reward0_idxs].copy(),self.X1[reward1_idxs].copy()])
+        self.x = np.vstack([self.X0[reward0_idxs].copy(),self.X1[reward1_idxs].copy()])
         self.arms = np.arange(self.K)
-        self.x, self.m = masking(self.p, len(self.arms), self.x)
+        
+        if not (self.autoencoder is None) and not self.pre_encoding:
+            self.x = encoding(self.autoencoder, self.x)
+        self.x, self.m = noising(self.p, len(self.arms), self.x)
             
     def write_used_idx(self):
         pass
