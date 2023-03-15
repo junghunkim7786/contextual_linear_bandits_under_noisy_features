@@ -28,7 +28,7 @@ user['agegroup'] = pd.cut(user['age'], bins, labels=names)
 user = user.drop(["age"], axis = 1)
 
 columnsToEncode = ["agegroup","gender","occupation"]
-myEncoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+myEncoder = OneHotEncoder(sparse=False, handle_unknown='ignore')
 myEncoder.fit(user[columnsToEncode])
 
 user_features = pd.concat([user.drop(columnsToEncode, 1),

@@ -32,7 +32,7 @@ top_cms_segid_index = user.groupby("cms_segid").count().sort_values("userid", as
 user = user.loc[user['cms_segid'].isin(top_cms_segid_index)].reset_index(drop=True)
 
 columnsToEncode = list(user.columns)[1:]
-myEncoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+myEncoder = OneHotEncoder(sparse=False, handle_unknown='ignore')
 myEncoder.fit(user[columnsToEncode])
 
 user_features = pd.concat([user.drop(columnsToEncode, 1),
@@ -57,7 +57,7 @@ ad_feature = ad_feature_.loc[ad_feature_['cate_id'].isin(top_cate_id_index)]
 ad_feature = ad_feature.loc[ad_feature['brand'].isin(top_brand_index)].reset_index(drop=True)
 
 columnsToEncode = list(ad_feature.columns)[1:]
-myEncoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+myEncoder = OneHotEncoder(sparse=False, handle_unknown='ignore')
 myEncoder.fit(ad_feature[columnsToEncode])
 
 ad_features = pd.concat([ad_feature.drop(columnsToEncode, 1),
