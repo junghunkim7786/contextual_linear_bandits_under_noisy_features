@@ -47,7 +47,7 @@ def AE_train(X, emb_dim = EMB_DIM, seed = 0):
     torch.cuda.manual_seed_all(seed) # if use multi-GPU
     np.random.seed(seed)
     random.seed(seed)
-
+    
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
 
